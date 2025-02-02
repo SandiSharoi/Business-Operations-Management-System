@@ -1,0 +1,29 @@
+a {
+    font-size: large;
+    margin-bottom: 15px;
+    position: relative;
+    text-decoration: none;
+    color: white;
+    padding: 10px;
+}
+
+a:hover {
+    background-color: #575757; /* Slight background color change on hover */
+    border: 2px solid transparent;
+    border-radius: 5px;
+    box-shadow: 0 0 10px 2px rgba(0, 123, 255, 0.5); /* Blue shine effect */
+    animation: shine 1.5s infinite;
+}
+
+/* Gradient border animation */
+@keyframes shine {
+    0% {
+        box-shadow: 0 0 10px 2px rgba(0, 123, 255, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px 5px rgba(0, 123, 255, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 10px 2px rgba(0, 123, 255, 0.5);
+    }
+}

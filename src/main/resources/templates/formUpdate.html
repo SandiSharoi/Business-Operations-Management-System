@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Form</title>
+    <link rel="icon" type="image/png" href="../static/images/logo.png">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../static/css/form.css" />
+</head>
+<body class="mt-5">
+
+<!-- Hero Section -->
+<section class="hero-section d-flex justify-content-center align-items-center vh-100">
+
+    <!-- Form Card -->
+    <div class="card col-lg-8 col-md-8 col-sm-10 mx-auto p-5 rounded-3 shadow-lg bg-blue-gradient">
+        <h1 class="text-center text-white mb-3 mt-5">Update Form</h1>
+        <p class="text-center text-black mb-4">Form Application System with Workflow Management</p>
+        <form action="formUpdate_successful.html" method="get" style="padding-left: 70px;">
+
+            <!-- Task -->
+            <div class="mb-4 row">
+                <label for="task" class="fw-bold text-white col-sm-3 col-form-label text-sm-end">Task</label>
+                <div class="col-sm-9">
+                    <input type="text" id="task" name="task" class="form-control rounded-pill" value="Prepare Quarterly Report" required />
+                </div>
+            </div>
+
+            <!-- Assign To -->
+            <div class="mb-4 row ml-5">
+                <label class="fw-bold text-white col-sm-3 col-form-label text-sm-end">Assign To</label>
+                <div class="col-sm-9 d-flex gap-3 align-items-center">
+                    <div class="form-check">
+                        <input type="checkbox" id="assign_pm" name="assign[]" value="PM" class="form-check-input" checked>
+                        <label for="assign_pm" class="form-check-label text-white">PM</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" id="assign_dh" name="assign[]" value="DH" class="form-check-input">
+                        <label for="assign_dh" class="form-check-label text-white">DH</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" id="assign_hr" name="assign[]" value="HR" class="form-check-input">
+                        <label for="assign_hr" class="form-check-label text-white">HR</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" id="assign_gm" name="assign[]" value="GM" class="form-check-input">
+                        <label for="assign_gm" class="form-check-label text-white">GM</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Planned Date -->
+            <div class="mb-4 row ml-5">
+                <label for="planned_date" class="fw-bold text-white col-sm-3 col-form-label text-sm-end">Planned Date</label>
+                <div class="col-sm-9">
+                    <input type="date" id="planned_date" name="planned_date" class="form-control rounded-pill" value="2024-12-01" required />
+                </div>
+            </div>
+
+            <!-- Planned Start Hour -->
+            <div class="mb-4 row ml-5">
+                <label for="planned_start_hour" class="fw-bold text-white col-sm-3 col-form-label text-sm-end">Planned Start Hour</label>
+                <div class="col-sm-9">
+                    <input type="time" id="planned_start_hour" name="planned_start_hour" class="form-control rounded-pill" value="09:00" required />
+                </div>
+            </div>
+
+            <!-- Planned End Hour -->
+            <div class="mb-4 row ml-5">
+                <label for="planned_end_hour" class="fw-bold text-white col-sm-3 col-form-label text-sm-end">Planned End Hour</label>
+                <div class="col-sm-9">
+                    <input type="time" id="planned_end_hour" name="planned_end_hour" class="form-control rounded-pill" value="17:00" required />
+                </div>
+            </div>
+
+            <!-- Actual Date -->
+            <div class="mb-4 row ml-5">
+                <label for="actual_date" class="fw-bold text-white col-sm-3 col-form-label text-sm-end">Actual Date</label>
+                <div class="col-sm-9">
+                    <input type="date" id="actual_date" name="actual_date" class="form-control rounded-pill" value="2024-12-02" required />
+                </div>
+            </div>
+
+            <!-- Actual Start Hour -->
+            <div class="mb-4 row ml-5">
+                <label for="actual_start_hour" class="fw-bold text-white col-sm-3 col-form-label text-sm-end">Actual Start Hour</label>
+                <div class="col-sm-9">
+                    <input type="time" id="actual_start_hour" name="actual_start_hour" class="form-control rounded-pill" value="10:00" required />
+                </div>
+            </div>
+
+            <!-- Actual End Hour -->
+            <div class="mb-4 row ml-5">
+                <label for="actual_end_hour" class="fw-bold text-white col-sm-3 col-form-label text-sm-end">Actual End Hour</label>
+                <div class="col-sm-9">
+                    <input type="time" id="actual_end_hour" name="actual_end_hour" class="form-control rounded-pill" value="18:00" required />
+                </div>
+            </div>
+
+            <!-- Overtime Date -->
+            <div class="mb-4 row ml-5">
+                <label class="fw-bold text-white col-sm-3 col-form-label text-sm-end">Overtime Date</label>
+                <div class="col-sm-9 d-flex gap-3 align-items-center">
+                    <div class="form-check">
+                        <input type="checkbox" id="weekday" name="overtime_date[]" value="Weekday" class="form-check-input" checked>
+                        <label for="weekday" class="form-check-label text-white">Weekday</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" id="holiday" name="overtime_date[]" value="Holiday" class="form-check-input">
+                        <label for="holiday" class="form-check-label text-white">Holiday</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" id="saturday" name="overtime_date[]" value="Sat" class="form-check-input">
+                        <label for="saturday" class="form-check-label text-white">Sat</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" id="sunday" name="overtime_date[]" value="Sun" class="form-check-input">
+                        <label for="sunday" class="form-check-label text-white">Sun</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-4 row ml-5">
+                <label for="description" class="fw-bold text-white col-sm-3 col-form-label text-sm-end">Description</label>
+                <div class="col-sm-9">
+                    <textarea id="description" name="description" class="form-control rounded" rows="3" required>Quarterly financial report preparation and review</textarea>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="mt-4 row ml-5">
+                <div class="offset-sm-3 col-sm-9">
+                    <button type="reset" class="btn btn-danger rounded-pill px-4 me-3" onclick="resetForm()">Reset</button>
+                    <a href="formUpdate_successful.html" class="btn btn-dark rounded-pill px-4">Update</a>                        
+
+                    
+                </div>
+            </div>
+
+        </form>
+    </div>
+</section>
+
+
+<script>
+    function resetForm() {
+        document.getElementById('updateForm').reset();
+    }
+
+</script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

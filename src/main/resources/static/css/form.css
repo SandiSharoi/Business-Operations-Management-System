@@ -1,0 +1,31 @@
+
+.bg-blue-gradient {
+    background: linear-gradient(to right, #96b9f5, #6678de);
+}
+
+
+.form-label {
+    width: 150px;
+}
+.form-control, .form-select {
+    max-width: 500px;   /* Reduced the width of input boxes */
+    width: 100%;
+}
+/* Ensure proper alignment of inputs */
+.form-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;  /* Horizontally centers the content */
+}
+
+/* Focus Effect for input boxes */
+.form-select:focus, .form-control:focus {
+    box-shadow: 0 0 8px 4px rgba(0, 191, 255, 0.6) !important; /* Glowing effect */
+    border: 6px solid #00bfff !important; /* Border color */
+    outline: none; /* Remove default outline */
+    transition: box-shadow 0.3s ease; /* Smooth transition */
+}    
+
+h1, label{
+    font-weight: bolder;
+}

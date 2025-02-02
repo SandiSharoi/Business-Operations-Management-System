@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Overtime Application</title>
+    <link rel="icon" type="image/png" href="../static/images/logo.png">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="bg-light">
+
+<!-- Hero Section -->
+<section class="d-flex justify-content-center align-items-center min-vh-100">
+    
+    <!-- Form Card -->
+    <div class="card col-lg-8 col-md-10 p-5 rounded-3 shadow-lg bg-white">
+        <h1 class="text-center text-dark mb-4">Edit Overtime Application</h1>
+
+        <div th:if="${error}" class="alert alert-danger" role="alert">
+            <p th:text="${error}"></p>
+        </div>
+        
+        <form th:action="@{/update_form_apply}" th:object="${formApplyDTO}" method="post">
+        
+            <!-- Hidden Input for Form ID -->
+            <input type="hidden" th:field="*{formApplyId}" />
+
+            <!-- Task -->
+            <div class="mb-4 row">
+                <label for="task" class="col-sm-3 col-form-label text-end fw-bold">Task</label>
+                <div class="col-sm-9">
+                    <input type="text" id="task" th:field="*{task}" class="form-control" placeholder="Enter Task" required />
+                </div>
+            </div>
+
+            <!-- Assign To -->
+            <!-- <div class="mb-4 row">
+                <label class="col-sm-3 col-form-label text-end fw-bold">Assign To</label>
+                <div class="col-sm-9">
+                    <div th:each="approver : ${approvers}">
+                        <div class="form-check form-check-inline">
+                            <input type="checkbox" 
+                                   th:id="'assign_' + ${approver.approverPosition.toLowerCase()}" 
+                                   th:name="assignedApprovers" 
+                                   th:value="${approver.approverPosition}" 
+                                   th:checked="${approver.checked ? 'checked' : null}" 
+                                   class="form-check-input" />
+                            <label th:for="'assign_' + ${approver.approverPosition.toLowerCase()}" 
+                                   th:text="${approver.approverPosition}" 
+                                   class="form-check-label"></label>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+
+            <!-- Planned Date -->
+            <div class="mb-4 row">
+                <label for="planned_date" class="col-sm-3 col-form-label text-end fw-bold">Planned Date</label>
+                <div class="col-sm-9">
+                    <input type="date" id="planned_date" th:field="*{plannedDate}"  class="form-control" required />
+
+                </div>
+            </div>
+
+            <!-- Planned Start Hour -->
+            <div class="mb-4 row">
+                <label for="planned_start_hour" class="col-sm-3 col-form-label text-end fw-bold">Planned Start Hour</label>
+                <div class="col-sm-9">                   
+                    <input type="time" id="planned_start_hour" th:field="*{plannedStartHour}" class="form-control" required />
+
+                </div>
+            </div>
+
+            <!-- Planned End Hour -->
+            <div class="mb-4 row">
+                <label for="planned_end_hour" class="col-sm-3 col-form-label text-end fw-bold">Planned End Hour</label>
+                <div class="col-sm-9">
+                    <input type="time" id="planned_end_hour" th:field="*{plannedEndHour}" class="form-control" required />
+
+                </div>
+            </div>
+
+            <!-- Actual Date -->
+            <div class="mb-4 row">
+                <label for="actual_date" class="col-sm-3 col-form-label text-end fw-bold">Actual Date</label>
+                <div class="col-sm-9">
+                    <input type="date" id="actual_date" th:field="*{actualDate}" class="form-control" required />
+
+                </div>
+            </div>
+
+            <!-- Actual Start Hour -->
+            <div class="mb-4 row">
+                <label for="actual_start_hour" class="col-sm-3 col-form-label text-end fw-bold">Actual Start Hour</label>
+                <div class="col-sm-9">                   
+                    <input type="time" id="actual_start_hour" th:field="*{actualStartHour}" class="form-control" required />
+
+                </div>
+            </div>
+
+            <!-- Actual End Hour -->
+            <div class="mb-4 row">
+                <label for="actual_end_hour" class="col-sm-3 col-form-label text-end fw-bold">Actual End Hour</label>
+                <div class="col-sm-9">
+                    <input type="time" id="actual_end_hour" th:field="*{actualEndHour}" class="form-control" required />
+                </div>
+            </div>
+
+            <!-- Overtime Date -->
+            <div class="mb-4 row">
+                <label class="col-sm-3 col-form-label text-end fw-bold">Overtime Date</label>
+                <div class="col-sm-9">
+                    <div class="form-check">
+                        <input type="radio" id="weekday" th:field="*{overtimeDate}" value="Weekday" class="form-check-input" />
+                        <label for="weekday" class="form-check-label">Weekday</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="radio" id="holiday" th:field="*{overtimeDate}" value="Holiday" class="form-check-input" />
+                        <label for="holiday" class="form-check-label">Holiday</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="radio" id="weekend" th:field="*{overtimeDate}" value="Weekend" class="form-check-input" />
+                        <label for="weekend" class="form-check-label">Weekend</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Work Type -->
+            <div class="mb-4 row">
+                <label class="col-sm-3 col-form-label text-end fw-bold">Work Type</label>
+                <div class="col-sm-9">
+                    <div class="form-check">
+                        <input type="radio" id="work_from_home" th:field="*{workType}" value="Work From Home" class="form-check-input" />
+                        <label for="work_from_home" class="form-check-label">Work From Home</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="radio" id="work_from_office" th:field="*{workType}" value="Work From Office" class="form-check-input" />
+                        <label for="work_from_office" class="form-check-label">Work From Office</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-4 row">
+                <label for="description" class="col-sm-3 col-form-label text-end fw-bold">Description</label>
+                <div class="col-sm-9">
+                    <textarea id="description" th:field="*{description}" class="form-control" rows="4" placeholder="Edit the description"></textarea>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="row">
+                <div class="col-sm-9 offset-sm-3">
+                    <button type="submit" class="btn btn-warning">Save Changes</button>
+                    <a th:href="@{/check_form_status}" class="btn btn-light">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

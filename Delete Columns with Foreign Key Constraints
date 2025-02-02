@@ -1,0 +1,14 @@
+-- Steps to Delete Columns with Foreign Key Constraints
+
+-- 1. Identify Foreign Key Constraints: Run the following query to list the constraints on the position table:
+
+SELECT conname, conrelid::regclass AS table_name, conkey, confrelid::regclass AS foreign_table
+FROM pg_constraint
+WHERE conrelid = 'position'::regclass AND contype = 'f';
+
+-- 2. Drop Foreign Key Constraints: Once you identify the names of the constraints for team_id and department_id, drop them using:
+ALTER TABLE position DROP CONSTRAINT <constraint_name>;
+
+-- 3. Delete the Columns: After dropping the constraints, you can safely delete the columns:
+ALTER TABLE position DROP COLUMN team_id;
+ALTER TABLE position DROP COLUMN department_id;
