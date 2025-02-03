@@ -34,8 +34,13 @@
                             <a th:href="@{/form/detail/{formId}(formId=${form.formApplyId}, source='check_form_status')}" class="btn btn-primary btn-sm">View</a>
                         </td>
 
-                        <td class="text-center">
+                        <td th:if="${form.finalFormStatus} == null" class="text-center">
                             <a th:href="@{/form_apply_edit/{id}(id=${form.formApplyId})}" class="btn btn-warning btn-sm">Edit</a>
+                        </td>
+
+
+                        <td th:unless="${form.finalFormStatus} == null" class="text-center">
+                             <p>No Edit Allow</p>
                         </td>
 
                         <td th:if="${form.finalFormStatus} == null" class="text-center">Pending</td>
