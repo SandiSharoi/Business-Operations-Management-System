@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+
+import java.util.List;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
@@ -32,6 +35,9 @@ public class UsersDTO {
     private TeamDTO team;
 
     private DepartmentDTO department;    
+
+    private List<Integer> departmentIds; // ✅ Add this to store multiple department IDs for DivH
+
     private RoleDTO role;
 
         // Custom constructor for id and name (for the query)

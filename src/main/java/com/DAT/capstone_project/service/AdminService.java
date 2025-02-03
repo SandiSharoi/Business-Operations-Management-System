@@ -2,6 +2,7 @@ package com.DAT.capstone_project.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.modelmapper.ModelMapper;
 
@@ -19,6 +20,7 @@ import com.DAT.capstone_project.repository.RoleRepository;
 
 import jakarta.servlet.http.HttpSession;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -107,6 +109,7 @@ public class AdminService {
         return "registration";
     }
 
+    @Transactional
     public String registerUser(UsersDTO usersDTO, Model model) {
         try {
             // Check if email already exists
@@ -119,22 +122,58 @@ public class AdminService {
                 return "registration"; // Return to registration page with error
             }
     
+            // Fetch position
             PositionEntity position = positionRepository.findById(usersDTO.getPosition().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Invalid Position ID"));
-            TeamEntity team = teamRepository.findById(usersDTO.getTeam().getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid Team ID"));
-            DepartmentEntity department = departmentRepository.findById(usersDTO.getDepartment().getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid Department ID"));
-            RoleEntity role = roleRepository.findById(usersDTO.getRole().getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid Role ID"));
     
+            // Map DTO to Entity
             UsersEntity user = modelMapper.map(usersDTO, UsersEntity.class);
             user.setPosition(position);
-            user.setTeam(team);
-            user.setDepartment(department);
-            user.setRole(role);
+            user.setRole(roleRepository.findById(usersDTO.getRole().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid Role ID")));
     
-            usersRepository.save(user);
+            // Case 1: PM or DH → Only department should be saved, team should be NULL
+            if (position.getName().equalsIgnoreCase("PM") || position.getName().equalsIgnoreCase("DH")) {
+                DepartmentEntity department = departmentRepository.findById(usersDTO.getDepartment().getId())
+                        .orElseThrow(() -> new IllegalArgumentException("Invalid Department ID"));
+                user.setDepartment(department);
+                user.setTeam(null); // Ensure team_id is NULL
+            }
+            // Case 2: DivH → Team & Department should be NULL, user is assigned to multiple departments
+            else if (position.getName().equalsIgnoreCase("DivH")) {
+                user.setTeam(null);  // Ensure team_id is NULL
+                user.setDepartment(null);  // Ensure department_id is NULL
+    
+                // Fetch multiple departments selected for DivH
+                List<Integer> departmentIds = usersDTO.getDepartmentIds();
+                if (departmentIds == null || departmentIds.isEmpty()) {
+                    throw new IllegalArgumentException("At least one department must be selected for DivH.");
+                }
+    
+                // Save user first before updating teams (prevents TransientObjectException)
+                user = usersRepository.save(user);
+    
+                // Find all teams associated with the selected departments
+                List<TeamEntity> teamsToUpdate = teamRepository.findByDepartmentIdIn(departmentIds);
+                for (TeamEntity team : teamsToUpdate) {
+                    team.setDivh(user); // Assign user as DivH in each team
+                }
+                teamRepository.saveAll(teamsToUpdate); // Save updated teams
+            }
+            // Case 3: Other positions → Save both Team & Department
+            else {
+                TeamEntity team = teamRepository.findById(usersDTO.getTeam().getId())
+                        .orElseThrow(() -> new IllegalArgumentException("Invalid Team ID"));
+                DepartmentEntity department = departmentRepository.findById(usersDTO.getDepartment().getId())
+                        .orElseThrow(() -> new IllegalArgumentException("Invalid Department ID"));
+                user.setTeam(team);
+                user.setDepartment(department);
+            }
+    
+            // Save user (if not DivH, as it's already saved earlier)
+            if (!position.getName().equalsIgnoreCase("DivH")) {
+                usersRepository.save(user);
+            }
     
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
@@ -142,13 +181,12 @@ public class AdminService {
             model.addAttribute("teams", teamRepository.findAll());
             model.addAttribute("departments", departmentRepository.findAll());
             model.addAttribute("roles", roleRepository.findAll());
-            return "registration";
+            return "registration"; // Return to registration page with error
         }
     
         return "registration_success";
     }
     
-
     public String showRegistrationListPage(Model model) {
         List<UsersEntity> userEntities = usersRepository.findAllByOrderByIdAsc();
         List<UsersDTO> users = userEntities.stream()
@@ -228,9 +266,28 @@ public class AdminService {
     }
 
     public void deleteUser(Long id) {
-        usersRepository.deleteById(id);  // Deletes the user with the given ID from the database
+        // Fetch all the teams where the user is referenced as PM, DH, or DivH
+        List<TeamEntity> teams = teamRepository.findAll();
+        
+        for (TeamEntity team : teams) {
+            if (team.getPm() != null && team.getPm().getId().equals(id)) {
+                team.setPm(null);  // Remove the PM reference
+            }
+            if (team.getDh() != null && team.getDh().getId().equals(id)) {
+                team.setDh(null);  // Remove the DH reference
+            }
+            if (team.getDivh() != null && team.getDivh().getId().equals(id)) {
+                team.setDivh(null);  // Remove the DivH reference
+            }
+        }
+    
+        // After updating the references, save the changes
+        teamRepository.saveAll(teams);
+        
+        // Now, delete the user from the users table
+        usersRepository.deleteById(id);  // Deletes the user with the given ID
     }
-
+    
     
     public UsersDTO getOriginalUserDetails(Long id) {
         UsersEntity userEntity = usersRepository.findById(id)
@@ -265,6 +322,4 @@ public class AdminService {
         // Return an empty list if both queries are empty
         return Collections.emptyList();
     }
-
-    
 }

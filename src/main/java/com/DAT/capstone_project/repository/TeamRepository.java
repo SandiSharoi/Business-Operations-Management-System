@@ -13,6 +13,9 @@ import com.DAT.capstone_project.model.TeamEntity;
 
 @Repository
 public interface TeamRepository extends JpaRepository<TeamEntity, Integer>{
+    
+    List<TeamEntity> findAll();  // Fetch all teams
+
     List<TeamEntity> findByName(String name);
 
     List<TeamEntity> findAllByDepartment(DepartmentEntity department);
@@ -22,8 +25,10 @@ public interface TeamRepository extends JpaRepository<TeamEntity, Integer>{
 
     List<TeamEntity> findByDepartmentId(Integer departmentId);
 
+    // To fetch multiple departments at once
+    List<TeamEntity> findByDepartmentIdIn(List<Integer> departmentIds);
+
+
     @Query(value = "select * from team where name = :name and department_id  = :departId", nativeQuery = true)
     Optional<TeamEntity> findByNameAndDepartmentId(@Param("name") String name, @Param("departId") Integer departId);
 }
-
-

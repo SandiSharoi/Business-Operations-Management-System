@@ -46,29 +46,41 @@
                     <input type="password" id="password" th:field="*{password}" class="form-control" placeholder="Enter Password" required>
                 </div>
 
+                <!-- Position Selection -->
                 <div class="mb-3">
                     <label for="position" class="form-label fw-bold">Position</label>
-                    <select id="position" th:field="*{position.id}" class="form-select" required>
+                    <select id="position" th:field="*{position.id}" class="form-select" required onchange="toggleFields()">
                         <option value="" disabled selected>Select Position</option>
-                        <option th:each="pos : ${positions}" th:value="${pos.id}" th:text="${pos.name}"></option>
-                    </select>
+                        <option th:each="pos : ${positions}" th:value="${pos.id}" th:text="${pos.name}" th:data-name="${pos.name}"></option>
+                    </select>                    
                 </div>
-                
-                <div class="mb-3">
+
+                <!-- Team Selection (Hidden for PM, DH, and DivH) -->
+                <div class="mb-3" id="teamDiv">
                     <label for="team" class="form-label fw-bold">Team</label>
-                    <select id="team" th:field="*{team.id}" class="form-select" required>
+                    <select id="team" th:field="*{team.id}" class="form-select">
                         <option value="" disabled selected>Select Team</option>
                         <option th:each="team : ${teams}" th:value="${team.id}" th:text="${team.name}"></option>
                     </select>
                 </div>
-                
-                <div class="mb-3">
+
+                <!-- Single Department Selection (For PM, DH, and Other Positions) -->
+                <div class="mb-3" id="departmentDiv">
                     <label for="department" class="form-label fw-bold">Department</label>
-                    <select id="department" th:field="*{department.id}" class="form-select" required>
+                    <select id="department" th:field="*{department.id}" class="form-select">
                         <option value="" disabled selected>Select Department</option>
                         <option th:each="dep : ${departments}" th:value="${dep.id}" th:text="${dep.name}"></option>
                     </select>
                 </div>
+
+                <!-- Multi-Department Selection (For DivH Only) -->
+                <div class="mb-3" id="multiDepartmentDiv" style="display: none;">
+                    <label for="multiDepartment" class="form-label fw-bold">Select Departments (For DivH)</label>
+                    <select id="multiDepartment" th:field="*{departmentIds}" class="form-select" multiple>
+                        <option th:each="dep : ${departments}" th:value="${dep.id}" th:text="${dep.name}"></option>
+                    </select>
+                </div>
+
                 
                 <div class="mb-3">
                     <label for="role" class="form-label fw-bold">Role</label>
@@ -87,4 +99,38 @@
 <!-- Bootstrap JS -->
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script></body>
+
+    <script>
+        function toggleFields() {
+            var positionSelect = document.getElementById("position");
+            var selectedOption = positionSelect.options[positionSelect.selectedIndex];
+            var positionName = selectedOption.getAttribute("data-name"); // Get position name
+
+            var teamDiv = document.getElementById("teamDiv");
+            var departmentDiv = document.getElementById("departmentDiv");
+            var multiDepartmentDiv = document.getElementById("multiDepartmentDiv");
+
+            if (positionName === "PM" || positionName === "DH") {
+                teamDiv.style.display = "none";
+                departmentDiv.style.display = "block";
+                multiDepartmentDiv.style.display = "none";
+            } else if (positionName === "DivH") {
+                teamDiv.style.display = "none";
+                departmentDiv.style.display = "none";
+                multiDepartmentDiv.style.display = "block";
+            } else {
+                teamDiv.style.display = "block";
+                departmentDiv.style.display = "block";
+                multiDepartmentDiv.style.display = "none";
+            }
+        }
+
+    
+        document.addEventListener("DOMContentLoaded", function() {
+            toggleFields(); // Ensure correct visibility on page load
+        });
+    
+        document.getElementById("position").addEventListener("change", toggleFields);
+    </script>
+    
 </html>
