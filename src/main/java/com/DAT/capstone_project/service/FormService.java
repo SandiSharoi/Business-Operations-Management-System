@@ -189,11 +189,12 @@ public class FormService {
     // Check Form Status......................................................
 
     public List<FormApplyDTO> getFormsByEmployee(UsersEntity employee) {
-        List<FormApplyEntity> formEntities = formApplyRepository.findByEmployee(employee);
+        List<FormApplyEntity> formEntities = formApplyRepository.findByEmployeeOrderByFormApplyIdAsc(employee);
         return formEntities.stream()
                 .map(entity -> modelMapper.map(entity, FormApplyDTO.class))
                 .collect(Collectors.toList());
     }
+    
 
     @Transactional
     public FormApplyDTO getFormDetails(Long formId) {
@@ -221,7 +222,7 @@ public class FormService {
         FormApplyEntity formApplyEntity = formApplyRepository.findById(formApplyDTO.getFormApplyId())
                 .orElseThrow(() -> new IllegalArgumentException("Form not found with ID: " + formApplyDTO.getFormApplyId()));
     
-        // Update only the fields that are allowed to be updated
+        // Update only editable fields
         if (formApplyDTO.getTask() != null) formApplyEntity.setTask(formApplyDTO.getTask());
         if (formApplyDTO.getPlannedDate() != null) formApplyEntity.setPlannedDate(formApplyDTO.getPlannedDate());
         if (formApplyDTO.getPlannedStartHour() != null) formApplyEntity.setPlannedStartHour(formApplyDTO.getPlannedStartHour());
@@ -233,20 +234,8 @@ public class FormService {
         if (formApplyDTO.getWorkType() != null) formApplyEntity.setWorkType(formApplyDTO.getWorkType());
         if (formApplyDTO.getDescription() != null) formApplyEntity.setDescription(formApplyDTO.getDescription());
     
-        formApplyEntity.setAppliedDate(LocalDate.now()); // Automatically update applied date
+        formApplyEntity.setAppliedDate(LocalDate.now()); // Update applied date automatically
         formApplyRepository.save(formApplyEntity);
-    
-        System.out.println("Updated Entity*** " + formApplyEntity);
-        System.out.println("Task ****" + formApplyEntity.getTask());
-        System.out.println("Planned Date ****" + formApplyEntity.getPlannedDate());
-        System.out.println("Planned Start Hour ****" + formApplyEntity.getPlannedStartHour());
-        System.out.println("Planned End Hour ****" + formApplyEntity.getPlannedEndHour());
-        System.out.println("Actual Date ****" + formApplyEntity.getActualDate());
-        System.out.println("Actual Start Hour ****" + formApplyEntity.getActualStartHour());
-        System.out.println("Actual End Hour ****" + formApplyEntity.getActualEndHour());
-        System.out.println("Overtime Date ****" + formApplyEntity.getOvertimeDate());
-        System.out.println("Work Type ****" + formApplyEntity.getWorkType());
-        System.out.println("Description ****" + formApplyEntity.getDescription());
     }
     
 
