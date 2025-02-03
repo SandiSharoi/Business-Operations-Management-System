@@ -18,9 +18,8 @@
         <h1 class="text-center text-primary mb-4" th:text="${isEditable ? 'Edit User' : 'User Details'}"></h1>
 
         <form th:action="@{/user/{id}(id=${user.id})}" th:object="${user}" method="post">
-           
-            <div class="mb-3">
 
+            <div class="mb-3">
                 <label for="name" class="form-label fw-bold">Full Name</label>
                 <input type="text" id="name" th:field="*{name}" class="form-control" th:readonly="${!isEditable}">
             </div>
@@ -35,81 +34,71 @@
                 <input type="tel" id="phone" th:field="*{phone}" class="form-control" th:readonly="${!isEditable}">
             </div>
 
-
-            <!-- <div class="mb-3">
-                <label for="password" class="form-label fw-bold">Password</label>
-                <input type="password" id="password" th:field="*{password}" class="form-control" th:readonly="${!isEditable}" >
-            </div> -->
-           
-            <!-- <div class="mb-3" th:hidden = "${!isEditable}">
-                    <label for="password" class="form-label fw-bold">Password</label>
-                    <input type="password" id="password" th:field="*{password}" class="form-control"  >    
-            </div> -->
-
-            <div class="mb-3">
+            <!-- Position Field (Show only if not null) -->
+            <div class="mb-3" th:if="${user.position != null}">
                 <label for="position" class="form-label fw-bold">Position</label>
                 <div th:if="${isEditable}">
-                    <select id="position" th:field="*{position.id}" class="form-select" required>
+                    <select id="position" th:field="*{position.id}" class="form-select">
                         <option value="" disabled>Select Position</option>
                         <option th:each="pos : ${positions}" th:value="${pos.id}" th:text="${pos.name}" 
                                 th:selected="${pos.id == user.position.id}"></option>
                     </select>
                 </div>
                 <div th:if="${!isEditable}">
-                    <input type="text" th:field="${user.position.name}" class="form-control" th:readonly="${!isEditable}">
-                    </select>
+                    <input type="text" th:field="${user.position.name}" class="form-control" readonly>
                 </div>
             </div>
-            
-            <div class="mb-3">
+
+            <!-- Team Field (Show only if not null) -->
+            <div class="mb-3" th:if="${user.team != null}">
                 <label for="team" class="form-label fw-bold">Team</label>
                 <div th:if="${isEditable}">
-                    <select id="team" th:field="*{team.id}" class="form-select" required>
+                    <select id="team" th:field="*{team.id}" class="form-select">
                         <option value="" disabled>Select Team</option>
                         <option th:each="team : ${teams}" th:value="${team.id}" th:text="${team.name}" 
                                 th:selected="${team.id == user.team.id}"></option>
                     </select>
                 </div>
                 <div th:if="${!isEditable}">
-                    <input type="text" th:field="${user.team.name}" class="form-control" th:readonly="${!isEditable}">
-
+                    <input type="text" th:field="${user.team.name}" class="form-control" readonly>
                 </div>
             </div>
-            
-            <div class="mb-3">
+
+            <!-- Department Field (Show only if not null) -->
+            <div class="mb-3" th:if="${user.department != null}">
                 <label for="department" class="form-label fw-bold">Department</label>
                 <div th:if="${isEditable}">
-                    <select id="department" th:field="*{department.id}" class="form-select" required>
+                    <select id="department" th:field="*{department.id}" class="form-select">
                         <option value="" disabled>Select Department</option>
                         <option th:each="dep : ${departments}" th:value="${dep.id}" th:text="${dep.name}" 
                                 th:selected="${dep.id == user.department.id}"></option>
                     </select>
                 </div>
                 <div th:if="${!isEditable}">
-                    <input type="text" th:field="${user.department.name}" class="form-control" th:readonly="${!isEditable}">
+                    <input type="text" th:field="${user.department.name}" class="form-control" readonly>
                 </div>
             </div>
-            
-            <div class="mb-5">
+
+            <!-- Role Field (Show only if not null) -->
+            <div class="mb-5" th:if="${user.role != null}">
                 <label for="role" class="form-label fw-bold">Role</label>
                 <div th:if="${isEditable}">
-                    <select id="role" th:field="*{role.id}" class="form-select" required>
+                    <select id="role" th:field="*{role.id}" class="form-select">
                         <option value="" disabled>Select Role</option>
                         <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}" 
                                 th:selected="${role.id == user.role.id}"></option>
                     </select>
                 </div>
                 <div th:if="${!isEditable}">
-                    <input type="text" th:field="${user.role.name}" class="form-control" th:readonly="${!isEditable}">
+                    <input type="text" th:field="${user.role.name}" class="form-control" readonly>
                 </div>
-            </div>        
-            
+            </div>
+
             <!-- Show Update and Reset buttons if in edit mode -->
             <div th:if="${isEditable}" class="d-flex justify-content-center gap-2 mt-5">
                 <button type="submit" class="btn btn-success px-4 mx-5 w-50">Update</button>
                 <a th:href="@{/user/reset/{id}(id=${user.id})}" class="btn btn-danger px-4 mx-5 w-50">Reset</a>
             </div>
-
 
         </form>
 
@@ -117,7 +106,6 @@
         <div class="d-flex justify-content-center mt-4">
             <a th:href="@{/registration_list}" class="btn btn-primary px-4 w-50">Back to List</a>
         </div>
-
 
     </div>
 </section>
