@@ -109,6 +109,16 @@ public class AdminService {
 
     public String registerUser(UsersDTO usersDTO, Model model) {
         try {
+            // Check if email already exists
+            if (usersRepository.existsByEmail(usersDTO.getEmail())) {
+                model.addAttribute("error", "This email has already been used by another user.");
+                model.addAttribute("positions", positionRepository.findAll());
+                model.addAttribute("teams", teamRepository.findAll());
+                model.addAttribute("departments", departmentRepository.findAll());
+                model.addAttribute("roles", roleRepository.findAll());
+                return "registration"; // Return to registration page with error
+            }
+    
             PositionEntity position = positionRepository.findById(usersDTO.getPosition().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Invalid Position ID"));
             TeamEntity team = teamRepository.findById(usersDTO.getTeam().getId())
@@ -117,15 +127,15 @@ public class AdminService {
                     .orElseThrow(() -> new IllegalArgumentException("Invalid Department ID"));
             RoleEntity role = roleRepository.findById(usersDTO.getRole().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Invalid Role ID"));
-
+    
             UsersEntity user = modelMapper.map(usersDTO, UsersEntity.class);
             user.setPosition(position);
             user.setTeam(team);
             user.setDepartment(department);
             user.setRole(role);
-
+    
             usersRepository.save(user);
-
+    
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("positions", positionRepository.findAll());
@@ -134,9 +144,10 @@ public class AdminService {
             model.addAttribute("roles", roleRepository.findAll());
             return "registration";
         }
-
+    
         return "registration_success";
     }
+    
 
     public String showRegistrationListPage(Model model) {
         List<UsersEntity> userEntities = usersRepository.findAllByOrderByIdAsc();
