@@ -7,19 +7,24 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.DAT.capstone_project.dto.FormApplyDTO;
 import com.DAT.capstone_project.dto.UsersDTO;
+import com.DAT.capstone_project.event.FormStatusChangeEvent;
 import com.DAT.capstone_project.model.AssignApproverEntity;
 import com.DAT.capstone_project.model.FormApplyEntity;
 import com.DAT.capstone_project.repository.AssignApproverRepository;
 import com.DAT.capstone_project.repository.FormApplyRepository;
 
+import lombok.RequiredArgsConstructor;
+
 
 
 @Service
+@RequiredArgsConstructor
 public class ApproverService {
 
     @Autowired
@@ -27,6 +32,10 @@ public class ApproverService {
 
     @Autowired
     private FormApplyRepository formApplyRepository;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
 
     @Autowired
     private ModelMapper modelMapper;
@@ -99,7 +108,9 @@ public class ApproverService {
         if (approver.getApproverPosition().equalsIgnoreCase(formApply.getHighest_approver())) {
             formApply.setFinalFormStatus("Approve");
             formApplyRepository.save(formApply);
-            System.out.println("AAAAAAAAAAAAAAAAAAAA");
+
+            // 🔥 Publish event
+            eventPublisher.publishEvent(new FormStatusChangeEvent(this, formApply));
         }
     }
     
@@ -122,22 +133,16 @@ public class ApproverService {
         higherApprovers.forEach(higherApprover -> {
             higherApprover.setFormStatus("Reject");
             assignApproverRepository.save(higherApprover);
-            System.out.println("All Reject");
         });
     
         // Check if this approver's position is the highest approver
         FormApplyEntity formApply = formApplyRepository.findById(formId)
             .orElseThrow(() -> new IllegalArgumentException("Form not found with ID: " + formId));
-            System.out.println("Before if approver check");
-            
-            System.out.println("approver po:::::::" + approver.getApproverPosition() );
-            System.out.println("highest approver po:::::::" + formApply.getHighest_approver() );
-
-
         
             formApply.setFinalFormStatus("Reject");
             formApplyRepository.save(formApply);
-            System.out.println("RRRRRRRRRRRRRRRRRRRRRRR");
+                    // 🔥 Publish event
+        eventPublisher.publishEvent(new FormStatusChangeEvent(this, formApply));
         
     }
     

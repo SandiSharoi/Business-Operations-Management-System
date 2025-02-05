@@ -10,6 +10,10 @@ import com.DAT.capstone_project.model.UsersEntity;
 
 @Repository
 public interface FormApplyRepository extends JpaRepository<FormApplyEntity, Long> {
+    
     // Fetch forms for a specific employee, sorted by formApplyId in ascending order
     List<FormApplyEntity> findByEmployeeOrderByFormApplyIdAsc(UsersEntity employee);
+
+    List<FormApplyEntity> findByFinalFormStatusIn(List<String> statuses);
+
 }
