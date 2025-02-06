@@ -21,10 +21,12 @@ import com.DAT.capstone_project.repository.FormApplyRepository;
 
 import lombok.RequiredArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ApproverService {
 
     @Autowired
@@ -92,25 +94,27 @@ public class ApproverService {
         return allLowerApproversApproved && !anyLowerApproverRejected;
     }
 
+
     @Transactional
     public void approveForm(Long formId, Long approverId) {
         AssignApproverEntity approver = assignApproverRepository
-            .findByFormApply_FormApplyIdAndApproverId(formId, approverId)
-            .orElseThrow(() -> new IllegalArgumentException("Approver not assigned to this form"));
-    
+                .findByFormApply_FormApplyIdAndApproverId(formId, approverId)
+                .orElseThrow(() -> new IllegalArgumentException("Approver not assigned to this form"));
+
         approver.setFormStatus("Approve");
         assignApproverRepository.save(approver);
-    
+
         // Check if this approver's position is the highest approver
         FormApplyEntity formApply = formApplyRepository.findById(formId)
-            .orElseThrow(() -> new IllegalArgumentException("Form not found with ID: " + formId));
-    
-        if (approver.getApproverPosition().equalsIgnoreCase(formApply.getHighest_approver())) {
-            formApply.setFinalFormStatus("Approve");
-            formApplyRepository.save(formApply);
+                .orElseThrow(() -> new IllegalArgumentException("Form not found with ID: " + formId));
 
-            // 🔥 Publish event
+        if (approver.getApproverPosition().equalsIgnoreCase(formApply.getHighest_approver())) {
+            
+            formApply.setFinalFormStatus("Approve");
+            formApplyRepository.save(formApply);            
+            // 🔥 Publish event for mail notification....................................................
             eventPublisher.publishEvent(new FormStatusChangeEvent(this, formApply));
+
         }
     }
     
@@ -135,13 +139,13 @@ public class ApproverService {
             assignApproverRepository.save(higherApprover);
         });
     
-        // Check if this approver's position is the highest approver
         FormApplyEntity formApply = formApplyRepository.findById(formId)
             .orElseThrow(() -> new IllegalArgumentException("Form not found with ID: " + formId));
         
             formApply.setFinalFormStatus("Reject");
             formApplyRepository.save(formApply);
-                    // 🔥 Publish event
+        
+        // 🔥 Publish event for mail notification....................................................
         eventPublisher.publishEvent(new FormStatusChangeEvent(this, formApply));
         
     }

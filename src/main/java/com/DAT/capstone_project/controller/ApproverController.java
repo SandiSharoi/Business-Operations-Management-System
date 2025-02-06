@@ -56,6 +56,4 @@ public class ApproverController {
         List<FormApplyDTO> updatedForms = approverService.getVisibleFormsForApprover(approverId);
         return ResponseEntity.ok(updatedForms);
     }
-
-
 }

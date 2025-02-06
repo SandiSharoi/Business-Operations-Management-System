@@ -111,6 +111,7 @@ public class AdminService {
 
     @Transactional
     public String registerUser(UsersDTO usersDTO, Model model) {
+        
         try {
             // Check if email already exists
             if (usersRepository.existsByEmail(usersDTO.getEmail())) {
@@ -126,21 +127,83 @@ public class AdminService {
             PositionEntity position = positionRepository.findById(usersDTO.getPosition().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Invalid Position ID"));
     
+            String user_position_name = position.getName();
+
             // Map DTO to Entity
             UsersEntity user = modelMapper.map(usersDTO, UsersEntity.class);
             user.setPosition(position);
             user.setRole(roleRepository.findById(usersDTO.getRole().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Invalid Role ID")));
     
-            // Case 1: PM or DH → Only department should be saved, team should be NULL
-            if (position.getName().equalsIgnoreCase("PM") || position.getName().equalsIgnoreCase("DH")) {
+
+            // Check if the position is already assigned for the selected team or department...........................
+            if (user_position_name.equalsIgnoreCase("PM")) {
+                TeamEntity team = teamRepository.findById(usersDTO.getTeam().getId())
+                        .orElseThrow(() -> new IllegalArgumentException("Invalid Team ID"));
+                if (team.getPm() != null) {
+                    model.addAttribute("error", "A Project Manager (PM) has already been assigned to this team.");
+                    model.addAttribute("positions", positionRepository.findAll());
+                    model.addAttribute("teams", teamRepository.findAll());
+                    model.addAttribute("departments", departmentRepository.findAll());
+                    model.addAttribute("roles", roleRepository.findAll());
+                    return "registration"; // Return to registration page with error
+                }
+            } 
+            
+            else if (user_position_name.equalsIgnoreCase("DH")) {
                 DepartmentEntity department = departmentRepository.findById(usersDTO.getDepartment().getId())
                         .orElseThrow(() -> new IllegalArgumentException("Invalid Department ID"));
+                List<TeamEntity> teams = teamRepository.findByDepartmentId(department.getId());
+                for (TeamEntity team : teams) {
+                    if (team.getDh() != null) {
+                        model.addAttribute("error", "A Department Head (DH) has already been assigned to this department.");
+                        model.addAttribute("positions", positionRepository.findAll());
+                        model.addAttribute("teams", teamRepository.findAll());
+                        model.addAttribute("departments", departmentRepository.findAll());
+                        model.addAttribute("roles", roleRepository.findAll());
+                        return "registration"; // Return to registration page with error
+                    }
+                }
+            }
+            
+            else if (user_position_name.equalsIgnoreCase("DivH")) {
+                List<Integer> departmentIds = usersDTO.getDepartmentIds();
+                if (departmentIds == null || departmentIds.isEmpty()) {
+                    throw new IllegalArgumentException("At least one department must be selected for DivH.");
+                }
+                List<TeamEntity> teams = teamRepository.findByDepartmentIdIn(departmentIds);
+                for (TeamEntity team : teams) {
+                    if (team.getDivh() != null) {
+                        model.addAttribute("error", "A Division Head (DivH) has already been assigned to one or more of the selected departments.");
+                        model.addAttribute("positions", positionRepository.findAll());
+                        model.addAttribute("teams", teamRepository.findAll());
+                        model.addAttribute("departments", departmentRepository.findAll());
+                        model.addAttribute("roles", roleRepository.findAll());
+                        return "registration"; // Return to registration page with error
+                    }
+                }
+            }
+
+            // Case 1: DH → Only department should be saved, team should be NULL
+            if ( user_position_name.equalsIgnoreCase("DH")) {
+                DepartmentEntity department = departmentRepository.findById(usersDTO.getDepartment().getId())
+                        .orElseThrow(() -> new IllegalArgumentException("Invalid Department ID"));
+
+
+                    
                 user.setDepartment(department);
                 user.setTeam(null); // Ensure team_id is NULL
+
+                // Find all teams associated with the selected department and save dh_id
+                List<TeamEntity> teamsToUpdate = teamRepository.findByDepartmentId(department.getId());
+                for (TeamEntity team : teamsToUpdate) {
+                    team.setDh(user); // Assign user as DivH in each team
+                }
+                teamRepository.saveAll(teamsToUpdate); // Save updated teams
             }
+
             // Case 2: DivH → Team & Department should be NULL, user is assigned to multiple departments
-            else if (position.getName().equalsIgnoreCase("DivH")) {
+            else if (user_position_name.equalsIgnoreCase("DivH")) {
                 user.setTeam(null);  // Ensure team_id is NULL
                 user.setDepartment(null);  // Ensure department_id is NULL
     
@@ -153,13 +216,14 @@ public class AdminService {
                 // Save user first before updating teams (prevents TransientObjectException)
                 user = usersRepository.save(user);
     
-                // Find all teams associated with the selected departments
+                // Find all teams associated with the selected departments and save divh_id
                 List<TeamEntity> teamsToUpdate = teamRepository.findByDepartmentIdIn(departmentIds);
                 for (TeamEntity team : teamsToUpdate) {
                     team.setDivh(user); // Assign user as DivH in each team
                 }
                 teamRepository.saveAll(teamsToUpdate); // Save updated teams
             }
+
             // Case 3: Other positions → Save both Team & Department
             else {
                 TeamEntity team = teamRepository.findById(usersDTO.getTeam().getId())
@@ -168,10 +232,20 @@ public class AdminService {
                         .orElseThrow(() -> new IllegalArgumentException("Invalid Department ID"));
                 user.setTeam(team);
                 user.setDepartment(department);
+
+                if (user_position_name.equalsIgnoreCase("PM")) {                  
+
+                    // Fetch all teams associated with the specified team ID and department ID
+                    List<TeamEntity> teamsToUpdate = teamRepository.findByIdAndDepartmentId(team.getId(), department.getId());
+                    for (TeamEntity t : teamsToUpdate) {
+                        t.setPm(user); // Assign user as PM in each team
+                    }
+                    teamRepository.saveAll(teamsToUpdate); // Save updated teams
+                }
             }
     
             // Save user (if not DivH, as it's already saved earlier)
-            if (!position.getName().equalsIgnoreCase("DivH")) {
+            if (!user_position_name.equalsIgnoreCase("DivH")) {
                 usersRepository.save(user);
             }
     

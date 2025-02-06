@@ -28,7 +28,17 @@ public interface TeamRepository extends JpaRepository<TeamEntity, Integer>{
     // To fetch multiple departments at once
     List<TeamEntity> findByDepartmentIdIn(List<Integer> departmentIds);
 
+    List<TeamEntity> findByIdAndDepartmentId(Integer Id, Integer departmentId);
+
+
+    // Check if pm, dh, divh are null
+    boolean existsByDepartmentIdAndDhIsNotNull(Integer departmentId);
+
+    boolean existsByDepartmentIdAndDivhIsNotNull(Integer departmentId);
+
+    boolean existsByIdAndPmIsNotNull(Integer teamId);
 
     @Query(value = "select * from team where name = :name and department_id  = :departId", nativeQuery = true)
     Optional<TeamEntity> findByNameAndDepartmentId(@Param("name") String name, @Param("departId") Integer departId);
+
 }

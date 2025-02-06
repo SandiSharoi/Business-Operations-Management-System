@@ -15,11 +15,12 @@ public class EmailSender {
         this.mailSender = mailSender;
     }
 
+    // EmailSender sends the email using JavaMailSender, with a retry mechanism in case of failure.
     public void sendEmail(String to, String subject, String content) throws MessagingException, UnsupportedEncodingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-        helper.setFrom("your-email@example.com", "Your Company Name");
+        helper.setFrom("kautkautofficial@gmail.com", "DAT HR Team");
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(content, true);
@@ -27,4 +28,3 @@ public class EmailSender {
         mailSender.send(message);
     }
 }
-

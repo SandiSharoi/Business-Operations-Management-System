@@ -14,6 +14,8 @@ import java.io.UnsupportedEncodingException;
 @RequiredArgsConstructor
 @Slf4j
 public class EmailNotificationService {
+
+    // EmailNotificationService listens for that event and prepares an email based on the form details.
     private final EmailSender emailSender;
 
     @EventListener
@@ -23,11 +25,12 @@ public class EmailNotificationService {
     }
 
     private void sendEmailWithRetry(FormApplyEntity formApply, int maxRetries) {
+        
         String recipientEmail = formApply.getEmployee().getEmail();
         String subject = "Your Form Has Been " + formApply.getFinalFormStatus();
         String content = String.format(
-            "<p>Dear %s,</p><p>Your form submitted on %s has been <b>%s</b>.</p>",
-            formApply.getEmployee().getName(), formApply.getAppliedDate(), formApply.getFinalFormStatus()
+            "<p>Dear %s,</p><p>Your form ID %s submitted on %s has been <b>%s</b>.</p>",
+            formApply.getEmployee().getName(),formApply.getFormApplyId() ,  formApply.getAppliedDate(), formApply.getFinalFormStatus()
         );
 
         int attempt = 0;
@@ -43,7 +46,11 @@ public class EmailNotificationService {
                     Thread.sleep(2000); // Wait 2 seconds before retrying
                 } catch (InterruptedException ignored) {}
             }
+            
         }
         log.error("🚨 Email sending failed after {} attempts for {}", maxRetries, recipientEmail);
     }
 }
+
+
+
