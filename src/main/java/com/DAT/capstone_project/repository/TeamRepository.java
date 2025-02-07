@@ -14,6 +14,7 @@ import com.DAT.capstone_project.model.TeamEntity;
 @Repository
 public interface TeamRepository extends JpaRepository<TeamEntity, Integer>{
     
+    @SuppressWarnings("null")
     List<TeamEntity> findAll();  // Fetch all teams
 
     List<TeamEntity> findByName(String name);

@@ -20,7 +20,6 @@ import com.DAT.capstone_project.repository.RoleRepository;
 
 import jakarta.servlet.http.HttpSession;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;

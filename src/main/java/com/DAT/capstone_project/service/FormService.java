@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.DAT.capstone_project.dto.AssignApproverDTO;
 import com.DAT.capstone_project.dto.FormApplyDTO;
-import com.DAT.capstone_project.event.FormStatusChangeEvent;
 import com.DAT.capstone_project.model.AssignApproverEntity;
 import com.DAT.capstone_project.model.DepartmentEntity;
 import com.DAT.capstone_project.model.FormApplyEntity;
@@ -49,9 +48,6 @@ public class FormService {
 
     @Autowired
     private ModelMapper modelMapper;
-
-    @Autowired
-    private EmailNotificationService emailNotificationService;
 
     @Autowired
     private EmailSender  emailSender;

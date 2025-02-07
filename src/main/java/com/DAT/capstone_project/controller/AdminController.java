@@ -1,6 +1,5 @@
 package com.DAT.capstone_project.controller;
 
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +15,6 @@ import com.DAT.capstone_project.repository.RoleRepository;
 import com.DAT.capstone_project.repository.TeamRepository;
 import com.DAT.capstone_project.service.AdminService;
 
-import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpSession;
 
 @Controller

@@ -117,13 +117,14 @@ public class ApproverService {
 
         if (nextApproverPosition != null) {
             // Find the next approver entity
-            AssignApproverEntity nextApprover = assignApproverRepository
+            AssignApproverEntity nextAssignApprover = assignApproverRepository
                     .findByFormApply_FormApplyIdAndApproverPosition(formId, nextApproverPosition)
                     .orElse(null);
 
-            if (nextApprover != null && nextApprover.getFormStatus().equals("Pending")) {
+            if (nextAssignApprover != null && nextAssignApprover.getFormStatus().equals("Pending")) {
+                
                 // Send notification to the next approver
-                sendNotificationToApprover(nextApprover, formApply);
+                sendNotificationToApprover(nextAssignApprover, formApply);
             }
         }
 
@@ -131,7 +132,7 @@ public class ApproverService {
         if (approver.getApproverPosition().equalsIgnoreCase(formApply.getHighest_approver())) {
             formApply.setFinalFormStatus("Approve");
             formApplyRepository.save(formApply);
-            // Publish event for mail notification to the form submitter
+            // Publish event for mail notification to the form submitter..................
             eventPublisher.publishEvent(new FormStatusChangeEvent(this, formApply));
         }
     }
@@ -161,7 +162,7 @@ public class ApproverService {
 
         formApply.setFinalFormStatus("Reject");
         formApplyRepository.save(formApply);
-        // Publish event for mail notification to the form submitter
+        // Publish event for mail notification to the form submitter................
         eventPublisher.publishEvent(new FormStatusChangeEvent(this, formApply));
     }
 
@@ -176,12 +177,12 @@ public class ApproverService {
         }
     }
 
-    private void sendNotificationToApprover(AssignApproverEntity approver, FormApplyEntity formApply) {
-        String recipientEmail = approver.getApprover().getEmail();
+    private void sendNotificationToApprover(AssignApproverEntity assignApprover, FormApplyEntity formApply) {
+        String recipientEmail = assignApprover.getApprover().getEmail();
         String subject = "New Form Approval Request";
         String content = String.format(
                 "<p>Dear %s,</p><p>You have a new form (ID: %s) submitted on %s awaiting your approval.</p>",
-                approver.getApprover().getName(), formApply.getFormApplyId(), formApply.getAppliedDate()
+                assignApprover.getApprover().getName(), formApply.getFormApplyId(), formApply.getAppliedDate()
         );
 
         try {
