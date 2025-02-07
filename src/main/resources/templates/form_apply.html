@@ -27,7 +27,11 @@
             <div class="mb-4 row">
                 <label for="task" class="col-sm-3 col-form-label text-end fw-bold">Task</label>
                 <div class="col-sm-9">
-                    <input type="text" id="task" th:field="*{task}" class="form-control" placeholder="Enter Task" required />
+                    <!-- <input type="text" id="task" th:field="*{task}" class="form-control" placeholder="Enter Task" required /> -->
+                    <!-- <input type="text" id="task" th:field="*{task}" class="form-control" th:value="${formApplyDTO.task ?: 'Default Task'}" required /> -->
+                    <input type="text" id="task" name="task" class="form-control" 
+                    th:value="${formApplyDTO.task != null ? formApplyDTO.task : 'Default Task'}" required />
+             
                 </div>
             </div>
 
@@ -59,7 +63,10 @@
             <div class="mb-4 row">
                 <label for="planned_date" class="col-sm-3 col-form-label text-end fw-bold">Planned Date</label>
                 <div class="col-sm-9">
-                    <input type="date" id="planned_date" th:field="*{plannedDate}" class="form-control" required />
+                    <!-- <input type="date" id="planned_date" th:field="*{plannedDate}" class="form-control" required />                 -->
+                    <input type="date" id="planned_date" name="plannedDate" class="form-control" 
+                    th:value="${formApplyDTO.plannedDate != null ? formApplyDTO.plannedDate : '2025-02-07'}" required />
+                             
                 </div>
             </div>
 
@@ -67,7 +74,10 @@
             <div class="mb-4 row">
                 <label for="planned_start_hour" class="col-sm-3 col-form-label text-end fw-bold">Planned Start Hour</label>
                 <div class="col-sm-9">
-                    <input type="time" id="planned_start_hour" th:field="*{plannedStartHour}" class="form-control" required />
+                    <!-- <input type="time" id="planned_start_hour" th:field="*{plannedStartHour}" class="form-control" required /> -->
+                    <input type="time" id="planned_start_hour" name="plannedStartHour" class="form-control" 
+                    th:value="${formApplyDTO.plannedStartHour != null ? formApplyDTO.plannedStartHour : '09:00'}" required />
+                    
                 </div>
             </div>
 
@@ -75,7 +85,9 @@
             <div class="mb-4 row">
                 <label for="planned_end_hour" class="col-sm-3 col-form-label text-end fw-bold">Planned End Hour</label>
                 <div class="col-sm-9">
-                    <input type="time" id="planned_end_hour" th:field="*{plannedEndHour}" class="form-control" required />
+                    <!-- <input type="time" id="planned_end_hour" th:field="*{plannedEndHour}" class="form-control" required /> -->
+                    <input type="time" id="planned_end_hour" name="plannedEndHour" class="form-control" 
+                    th:value="${formApplyDTO.plannedEndHour != null ? formApplyDTO.plannedEndHour : '18:00'}" required />
                 </div>
             </div>
 
@@ -83,7 +95,10 @@
             <div class="mb-4 row">
                 <label for="actual_date" class="col-sm-3 col-form-label text-end fw-bold">Actual Date</label>
                 <div class="col-sm-9">
-                    <input type="date" id="actual_date" th:field="*{actualDate}" class="form-control" required />
+                    <!-- <input type="date" id="actual_date" th:field="*{actualDate}" class="form-control" required /> -->
+                    <input type="date" id="actual_date" name="actualDate" class="form-control" 
+                    th:value="${formApplyDTO.actualDate != null ? formApplyDTO.actualDate : '2025-02-10'}" required />                        
+               
                 </div>
             </div>
 
@@ -91,7 +106,9 @@
             <div class="mb-4 row">
                 <label for="actual_start_hour" class="col-sm-3 col-form-label text-end fw-bold">Actual Start Hour</label>
                 <div class="col-sm-9">
-                    <input type="time" id="actual_start_hour" th:field="*{actualStartHour}" class="form-control" required />
+                    <!-- <input type="time" id="actual_start_hour" th:field="*{actualStartHour}" class="form-control" required /> -->
+                    <input type="time" id="actual_start_hour" name="actualStartHour" class="form-control" 
+                    th:value="${formApplyDTO.actualStartHour != null ? formApplyDTO.actualStartHour : '09:00'}" required />                            
                 </div>
             </div>
 
@@ -99,7 +116,9 @@
             <div class="mb-4 row">
                 <label for="actual_end_hour" class="col-sm-3 col-form-label text-end fw-bold">Actual End Hour</label>
                 <div class="col-sm-9">
-                    <input type="time" id="actual_end_hour" th:field="*{actualEndHour}" class="form-control" required />
+                    <!-- <input type="time" id="actual_end_hour" th:field="*{actualEndHour}" class="form-control" required /> -->
+                    <input type="time" id="actual_end_hour" name="actualEndHour" class="form-control" 
+                    th:value="${formApplyDTO.actualEndHour != null ? formApplyDTO.actualEndHour : '18:00'}" required />                
                 </div>
             </div>
 

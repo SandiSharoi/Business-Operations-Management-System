@@ -1,5 +1,6 @@
 package com.DAT.capstone_project.service;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -19,6 +20,7 @@ import com.DAT.capstone_project.model.FormApplyEntity;
 import com.DAT.capstone_project.repository.AssignApproverRepository;
 import com.DAT.capstone_project.repository.FormApplyRepository;
 
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +43,9 @@ public class ApproverService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private EmailSender  emailSender;
 
     @Transactional
     public List<FormApplyDTO> getVisibleFormsForApprover(Long approverId) {
@@ -95,7 +100,7 @@ public class ApproverService {
     }
 
 
-    @Transactional
+@Transactional
     public void approveForm(Long formId, Long approverId) {
         AssignApproverEntity approver = assignApproverRepository
                 .findByFormApply_FormApplyIdAndApproverId(formId, approverId)
@@ -104,50 +109,88 @@ public class ApproverService {
         approver.setFormStatus("Approve");
         assignApproverRepository.save(approver);
 
-        // Check if this approver's position is the highest approver
         FormApplyEntity formApply = formApplyRepository.findById(formId)
                 .orElseThrow(() -> new IllegalArgumentException("Form not found with ID: " + formId));
 
-        if (approver.getApproverPosition().equalsIgnoreCase(formApply.getHighest_approver())) {
-            
-            formApply.setFinalFormStatus("Approve");
-            formApplyRepository.save(formApply);            
-            // 🔥 Publish event for mail notification....................................................
-            eventPublisher.publishEvent(new FormStatusChangeEvent(this, formApply));
+        // Determine the next approver based on the current approver's position
+        String nextApproverPosition = getNextApproverPosition(approver.getApproverPosition());
 
+        if (nextApproverPosition != null) {
+            // Find the next approver entity
+            AssignApproverEntity nextApprover = assignApproverRepository
+                    .findByFormApply_FormApplyIdAndApproverPosition(formId, nextApproverPosition)
+                    .orElse(null);
+
+            if (nextApprover != null && nextApprover.getFormStatus().equals("Pending")) {
+                // Send notification to the next approver
+                sendNotificationToApprover(nextApprover, formApply);
+            }
+        }
+
+        // If the current approver is the highest approver, finalize the form status
+        if (approver.getApproverPosition().equalsIgnoreCase(formApply.getHighest_approver())) {
+            formApply.setFinalFormStatus("Approve");
+            formApplyRepository.save(formApply);
+            // Publish event for mail notification to the form submitter
+            eventPublisher.publishEvent(new FormStatusChangeEvent(this, formApply));
         }
     }
-    
 
     @Transactional
     public void rejectForm(Long formId, Long approverId) {
         AssignApproverEntity approver = assignApproverRepository
-            .findByFormApply_FormApplyIdAndApproverId(formId, approverId)
-            .orElseThrow(() -> new IllegalArgumentException("Approver not assigned to this form"));
-    
+                .findByFormApply_FormApplyIdAndApproverId(formId, approverId)
+                .orElseThrow(() -> new IllegalArgumentException("Approver not assigned to this form"));
+
         approver.setFormStatus("Reject");
         assignApproverRepository.save(approver);
-    
+
         // Automatically reject for all higher approvers
         List<AssignApproverEntity> higherApprovers = assignApproverRepository
-            .findByFormApply_FormApplyId(formId).stream()
-            .filter(a -> isHigherPosition(a.getApproverPosition(), approver.getApproverPosition()))
-            .collect(Collectors.toList());
-    
+                .findByFormApply_FormApplyId(formId).stream()
+                .filter(a -> isHigherPosition(a.getApproverPosition(), approver.getApproverPosition()))
+                .collect(Collectors.toList());
+
         higherApprovers.forEach(higherApprover -> {
             higherApprover.setFormStatus("Reject");
             assignApproverRepository.save(higherApprover);
         });
-    
+
         FormApplyEntity formApply = formApplyRepository.findById(formId)
-            .orElseThrow(() -> new IllegalArgumentException("Form not found with ID: " + formId));
-        
-            formApply.setFinalFormStatus("Reject");
-            formApplyRepository.save(formApply);
-        
-        // 🔥 Publish event for mail notification....................................................
+                .orElseThrow(() -> new IllegalArgumentException("Form not found with ID: " + formId));
+
+        formApply.setFinalFormStatus("Reject");
+        formApplyRepository.save(formApply);
+        // Publish event for mail notification to the form submitter
         eventPublisher.publishEvent(new FormStatusChangeEvent(this, formApply));
-        
+    }
+
+    private String getNextApproverPosition(String currentPosition) {
+        switch (currentPosition.toUpperCase()) {
+            case "PM":
+                return "DH";
+            case "DH":
+                return "DivH";
+            default:
+                return null;
+        }
+    }
+
+    private void sendNotificationToApprover(AssignApproverEntity approver, FormApplyEntity formApply) {
+        String recipientEmail = approver.getApprover().getEmail();
+        String subject = "New Form Approval Request";
+        String content = String.format(
+                "<p>Dear %s,</p><p>You have a new form (ID: %s) submitted on %s awaiting your approval.</p>",
+                approver.getApprover().getName(), formApply.getFormApplyId(), formApply.getAppliedDate()
+        );
+
+        try {
+            emailSender.sendEmail(recipientEmail, subject, content);
+            log.info("✅ Notification email sent successfully to {}", recipientEmail);
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            log.error("❌ Failed to send notification email to {}: {}", recipientEmail, e.getMessage());
+        }
+            
     }
     
 

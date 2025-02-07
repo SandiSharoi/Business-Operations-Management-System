@@ -1,6 +1,8 @@
 package com.DAT.capstone_project.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -8,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.DAT.capstone_project.dto.AssignApproverDTO;
 import com.DAT.capstone_project.dto.FormApplyDTO;
+import com.DAT.capstone_project.event.FormStatusChangeEvent;
 import com.DAT.capstone_project.model.AssignApproverEntity;
 import com.DAT.capstone_project.model.DepartmentEntity;
 import com.DAT.capstone_project.model.FormApplyEntity;
@@ -17,9 +20,12 @@ import com.DAT.capstone_project.repository.AssignApproverRepository;
 import com.DAT.capstone_project.repository.FormApplyRepository;
 import com.DAT.capstone_project.repository.TeamRepository;
 
+import jakarta.mail.MessagingException;
 
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -29,6 +35,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class FormService {
 
     @Autowired
@@ -43,6 +50,11 @@ public class FormService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private EmailNotificationService emailNotificationService;
+
+    @Autowired
+    private EmailSender  emailSender;
 
     @SuppressWarnings("null")
     public List<AssignApproverDTO> getApproversForUser(UsersEntity user) {
@@ -118,35 +130,39 @@ public class FormService {
     }
     
     public void saveFormApply(FormApplyDTO formApplyDTO, List<String> assignedTo, String highestApprover, UsersEntity loggedInUser) {
-        FormApplyEntity formApplyEntity = new FormApplyEntity();
-        formApplyEntity.setEmployee(loggedInUser);
-        formApplyEntity.setAppliedDate(LocalDate.now());
-        formApplyEntity.setTask(formApplyDTO.getTask());
-        formApplyEntity.setPlannedDate(formApplyDTO.getPlannedDate());
-        formApplyEntity.setPlannedStartHour(formApplyDTO.getPlannedStartHour());
-        formApplyEntity.setPlannedEndHour(formApplyDTO.getPlannedEndHour());
-        formApplyEntity.setActualDate(formApplyDTO.getActualDate());
-        formApplyEntity.setActualStartHour(formApplyDTO.getActualStartHour());
-        formApplyEntity.setActualEndHour(formApplyDTO.getActualEndHour());
-        formApplyEntity.setOvertimeDate(formApplyDTO.getOvertimeDate());
-        formApplyEntity.setWorkType(formApplyDTO.getWorkType());
-        formApplyEntity.setDescription(formApplyDTO.getDescription());
+        FormApplyEntity formApply = new FormApplyEntity();
+        formApply.setEmployee(loggedInUser);
+        formApply.setAppliedDate(LocalDate.now());
+        formApply.setTask(formApplyDTO.getTask());
+        formApply.setPlannedDate(formApplyDTO.getPlannedDate());
+        formApply.setPlannedStartHour(formApplyDTO.getPlannedStartHour());
+        formApply.setPlannedEndHour(formApplyDTO.getPlannedEndHour());
+        formApply.setActualDate(formApplyDTO.getActualDate());
+        formApply.setActualStartHour(formApplyDTO.getActualStartHour());
+        formApply.setActualEndHour(formApplyDTO.getActualEndHour());
+        formApply.setOvertimeDate(formApplyDTO.getOvertimeDate());
+        formApply.setWorkType(formApplyDTO.getWorkType());
+        formApply.setDescription(formApplyDTO.getDescription());
     
         int noOfApprovers = (int) assignedTo.stream()
             .filter(approver -> List.of("PM", "DH", "DIVH").contains(approver.toUpperCase()))
             .count();
-        formApplyEntity.setNo_of_approvers(noOfApprovers);
+        formApply.setNo_of_approvers(noOfApprovers);
     
         // Set the highest approver
-        formApplyEntity.setHighest_approver(highestApprover);
+        formApply.setHighest_approver(highestApprover);
     
-        formApplyRepository.save(formApplyEntity);
+        formApplyRepository.save(formApply);
     
         TeamEntity team = getTeamForUser(loggedInUser);
         if (team == null) {
             throw new IllegalArgumentException("User has no valid team or department for approvers.");
         }
     
+        // Determine the lowest approver
+        String lowestApproverPosition = determineLowestApprover(assignedTo);
+        UsersEntity lowestApprover = getApproverByPosition(team, lowestApproverPosition);
+        
         for (String approverPosition : assignedTo) {
             UsersEntity approver = switch (approverPosition.toUpperCase()) {
                 case "PM" -> team.getPm();
@@ -160,18 +176,60 @@ public class FormService {
             }
     
             AssignApproverEntity assignApproverEntity = new AssignApproverEntity();
-            assignApproverEntity.setFormApply(formApplyEntity);
+            assignApproverEntity.setFormApply(formApply);
             assignApproverEntity.setApprover(approver);
             assignApproverEntity.setApproverPosition(approverPosition);
             assignApproverEntity.setFormStatus("Pending");
     
             assignApproverRepository.save(assignApproverEntity);
+
+            // Publish event for mail notification to the lowest approver immediately
+            if (approverPosition.equalsIgnoreCase(lowestApproverPosition)) {
+                // emailNotificationService.sendNotification(approver, formApply);
+                // eventPublisher.publishEvent(new FormStatusChangeEvent(approver, formApply));
+                sendNotificationToApprover(lowestApprover, formApply);
+
+            }
+
         }
+    }
+
+    private void sendNotificationToApprover(UsersEntity lowestApprover, FormApplyEntity formApply) {
+        String recipientEmail = lowestApprover.getEmail();
+        String subject = "New Form Approval Request";
+        String content = String.format(
+                "<p>Dear %s,</p><p>You have a new form (ID: %s) submitted on %s awaiting your approval.</p>",
+                lowestApprover.getName(), formApply.getFormApplyId(), formApply.getAppliedDate()
+        );
+
+        try {
+            emailSender.sendEmail(recipientEmail, subject, content);
+            log.info("✅ Notification email sent successfully to {}", recipientEmail);
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            log.error("❌ Failed to send notification email to {}: {}", recipientEmail, e.getMessage());
+        }
+            
     }
     
     
+    private String determineLowestApprover(List<String> assignedTo) {
+        List<String> hierarchy = Arrays.asList("PM", "DH", "DIVH");
+        for (String position : hierarchy) {
+            if (assignedTo.contains(position)) {
+                return position;
+            }
+        }
+        throw new IllegalArgumentException("No valid approver found in the assigned list.");
+    }
 
-
+    private UsersEntity getApproverByPosition(TeamEntity team, String position) {
+        return switch (position.toUpperCase()) {
+            case "PM" -> team.getPm();
+            case "DH" -> team.getDh();
+            case "DIVH" -> team.getDivh();
+            default -> null;
+        };
+    }   
 
   
     public TeamEntity getTeamForUser(UsersEntity user) {

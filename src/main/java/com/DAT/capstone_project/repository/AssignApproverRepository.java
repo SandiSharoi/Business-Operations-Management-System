@@ -21,4 +21,7 @@ public interface AssignApproverRepository extends JpaRepository<AssignApproverEn
 
     // Custom query to find assign approvers by form status
     List<AssignApproverEntity> findByFormStatus(String formStatus);
+
+    Optional<AssignApproverEntity> findByFormApply_FormApplyIdAndApproverPosition(Long formApplyId, String approverPosition);
+
 }
