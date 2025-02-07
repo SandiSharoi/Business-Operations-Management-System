@@ -8,6 +8,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import com.DAT.capstone_project.dto.ChangePasswordDTO;
+import com.DAT.capstone_project.dto.ChangePasswordResponse;
 import com.DAT.capstone_project.dto.UsersDTO;  // Updated to use DTO
 import com.DAT.capstone_project.repository.DepartmentRepository;
 import com.DAT.capstone_project.repository.PositionRepository;
@@ -15,7 +17,9 @@ import com.DAT.capstone_project.repository.RoleRepository;
 import com.DAT.capstone_project.repository.TeamRepository;
 import com.DAT.capstone_project.service.AdminService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 
 @Controller
 public class AdminController {
@@ -141,4 +145,83 @@ public class AdminController {
     }
 
 
+    // User Info & Password change................................................................................
+    @GetMapping("/dashboard")
+    public String dashboard(Model model, HttpSession session) {
+        UsersDTO user = (UsersDTO) session.getAttribute("loggedInUser");
+        model.addAttribute("user", user);
+        return "dashboard";
+    }
+
+    @PostMapping("/user/{id}/change-password")
+    public String changePassword(
+            @PathVariable("id") Long userId,
+            @Valid @RequestParam("oldPassword") String oldPassword,
+            @Valid @RequestParam("newPassword") String newPassword,
+            @Valid @RequestParam("confirmPassword") String confirmPassword,
+            HttpSession session,
+            HttpServletRequest request,
+            Model model) {
+
+        // Get the userId from the session
+        Long sessionUserId = (Long) session.getAttribute("userId");
+
+        // Check if the session user ID is null (user not logged in)
+        if (sessionUserId == null) {
+            model.addAttribute("message", "User not logged in.");
+            return "dashboard"; // Redirect to dashboard if not logged in
+        }
+
+        // Check if the session user ID matches the user ID from the request
+        if (!sessionUserId.equals(userId)) {
+            model.addAttribute("message", "User ID mismatch. You can only change your own password.");
+            return "dashboard";
+        }
+
+        // Validate the new password and confirm password
+        if (!newPassword.equals(confirmPassword)) {
+            model.addAttribute("message", "New password and confirm password do not match.");
+            return "dashboard";
+        }
+
+        // Password format validation
+        if (newPassword.length() < 8) { // Example: Password must be at least 8 characters long
+            model.addAttribute("message", "New password is too short. Minimum 8 characters required.");
+            return "dashboard";
+        }
+
+        // Password strength validation
+        if (!newPassword.matches(".*[A-Z].*") || !newPassword.matches(".*[0-9].*") || !newPassword.matches(".*[!@#$%^&*()].*")) {
+            model.addAttribute("message", "New password must contain at least one uppercase letter, one number, and one special character.");
+            return "dashboard";
+        }
+
+        // Create DTO to hold the passwords
+        ChangePasswordDTO changePasswordDTO = new ChangePasswordDTO();
+        changePasswordDTO.setOldPassword(oldPassword);
+        changePasswordDTO.setNewPassword(newPassword);
+        changePasswordDTO.setConfirmPassword(confirmPassword);
+
+        try {
+            ChangePasswordResponse response = adminService.changePassword(userId, changePasswordDTO, session);
+
+            // Check if the password change was successful
+            if (response.isSuccess()) {
+                session.invalidate();
+
+                session = request.getSession(true);
+
+                model.addAttribute("message", "Password changed successfully. Please log in again.");
+
+                // Redirect to the login page after successful change
+                return "redirect:/";
+            } else {
+                model.addAttribute("message", response.getMessage());
+                return "dashboard";
+            }
+        } catch (Exception e) {
+            model.addAttribute("message", "An error occurred while changing the password.");
+            return "dashboard";
+        }
+    }    
 }

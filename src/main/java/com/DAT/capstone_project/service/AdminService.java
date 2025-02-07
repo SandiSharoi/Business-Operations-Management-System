@@ -6,6 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.modelmapper.ModelMapper;
 
+import com.DAT.capstone_project.dto.ChangePasswordDTO;
+import com.DAT.capstone_project.dto.ChangePasswordResponse;
 import com.DAT.capstone_project.dto.UsersDTO;  
 import com.DAT.capstone_project.model.UsersEntity;
 import com.DAT.capstone_project.model.PositionEntity;
@@ -26,6 +28,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 
 @Service
 public class AdminService {
@@ -48,26 +54,37 @@ public class AdminService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;    
+
     // --- Authentication and Registration ---
     public Optional<UsersEntity> authenticate(String email, String password) {
         Optional<UsersEntity> user = usersRepository.findByEmail(email);
-        return user.filter(u -> u.getPassword().equals(password));
-    }
 
+        // Use BCrypt to match the hashed password with the entered password
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+        return user.filter(u -> passwordEncoder.matches(password, u.getPassword()));  // Use BCrypt to compare hashed passwords
+    }
 
     public String authenticateAndRedirect(String email, String password, Model model, HttpSession session) {
         Optional<UsersEntity> user = authenticate(email, password);
-    
+
         if (user.isPresent()) {
             UsersEntity loggedInUser = user.get();
-            session.setAttribute("loggedInUser", loggedInUser); // Store user in session
-    
+
+            // Set both loggedInUser and userId in the session
+            session.setAttribute("loggedInUser", loggedInUser);  // Store full user object
+            session.setAttribute("userId", loggedInUser.getId());  // Store userId for checking in other requests
+
             model.addAttribute("user", modelMapper.map(loggedInUser, UsersDTO.class));
+
+            // Get the role and position names
             String roleName = loggedInUser.getRole().getName();
             String positionName = loggedInUser.getPosition().getName();
 
+            // Redirect based on role and position
             return redirectBasedOnRole(roleName, positionName , model);
-
         } else {
             model.addAttribute("error", "Invalid email or password");
             return "login";
@@ -395,4 +412,37 @@ public class AdminService {
         // Return an empty list if both queries are empty
         return Collections.emptyList();
     }
+
+    // Password Change..........................................................................................
+
+    private boolean isValidPassword(String password) {
+        // Ensure password is at least 8 characters long and contains at least one special character
+        return password.length() >= 8 && password.matches(".*[!@#$%^&*(),.?\":{}|<>].*");
+    }
+
+    public ChangePasswordResponse changePassword(Long userId, ChangePasswordDTO changePasswordDTO, HttpSession session) {
+        // Fetch the user from the database
+        UsersEntity user = usersRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        System.out.println("Stored password: " + user.getPassword());
+        System.out.println("Entered password: " + changePasswordDTO.getOldPassword());
+
+        if (!passwordEncoder.matches(changePasswordDTO.getOldPassword(), user.getPassword())) {
+            return new ChangePasswordResponse(false, "Old password is incorrect.");
+        }
+
+        if (!isValidPassword(changePasswordDTO.getNewPassword())) {
+            return new ChangePasswordResponse(false, "Password must be at least 8 characters long and contain at least one special character.");
+        }
+
+        // Update password and save user
+        user.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
+        usersRepository.save(user);
+
+        // Also update the session with the new password
+        session.setAttribute("loggedInUser", user);
+
+        return new ChangePasswordResponse(true, "Password changed successfully.");
+    }    
 }
