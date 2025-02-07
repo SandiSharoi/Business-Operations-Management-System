@@ -21,7 +21,7 @@
             <p th:text="${error}"></p>
         </div>
         
-        <form th:action="@{/submit_form_apply}" th:object="${formApplyDTO}" method="post">
+        <form th:action="@{/submit_form_apply}"  th:object="${formApplyDTO}" method="post" enctype="multipart/form-data">
         
             <!-- Task -->
             <div class="mb-4 row">
@@ -163,6 +163,14 @@
                     <textarea id="description" th:field="*{description}" class="form-control" rows="4" placeholder="Enter a brief description of the overtime task"></textarea>
                 </div>
             </div>
+
+                <!-- File Upload Field-->
+                <div class="mb-4 row">
+                    <label for="documentFile" class="col-sm-3 col-form-label text-end fw-bold">Document</label>
+                    <div class="col-sm-9">
+                        <input type="file" id="documentFile" name="documentFile" required />
+                    </div>
+                </div>            
 
             <!-- Buttons -->
             <div class="row">

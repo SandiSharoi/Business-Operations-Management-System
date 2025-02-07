@@ -9,6 +9,7 @@ import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
 
 
+
 @Data // Lombok annotation for getters, setters, and other methods
 public class FormApplyDTO {
 
@@ -41,8 +42,11 @@ public class FormApplyDTO {
     private Integer no_of_approvers;
     private String highest_approver;
     private String finalFormStatus;
+ 
+    // Field to store the name of the uploaded file
+    private String fileName;  // This field will store the name of the uploaded file
     
-        // A list of approver positions (PM, DH, DivH) selected in the form
-        private List<String> assignedApprovers;
+    // A list of approver positions (PM, DH, DivH) selected in the form
+    private List<String> assignedApprovers;
 
 }

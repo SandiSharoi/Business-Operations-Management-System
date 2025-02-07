@@ -21,7 +21,11 @@ import com.DAT.capstone_project.repository.TeamRepository;
 
 import jakarta.mail.MessagingException;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -124,32 +128,35 @@ public class FormService {
         
         return dto;
     }
-    
-    public void saveFormApply(FormApplyDTO formApplyDTO, List<String> assignedTo, String highestApprover, UsersEntity loggedInUser) {
-        FormApplyEntity formApply = new FormApplyEntity();
-        formApply.setEmployee(loggedInUser);
-        formApply.setAppliedDate(LocalDate.now());
-        formApply.setTask(formApplyDTO.getTask());
-        formApply.setPlannedDate(formApplyDTO.getPlannedDate());
-        formApply.setPlannedStartHour(formApplyDTO.getPlannedStartHour());
-        formApply.setPlannedEndHour(formApplyDTO.getPlannedEndHour());
-        formApply.setActualDate(formApplyDTO.getActualDate());
-        formApply.setActualStartHour(formApplyDTO.getActualStartHour());
-        formApply.setActualEndHour(formApplyDTO.getActualEndHour());
-        formApply.setOvertimeDate(formApplyDTO.getOvertimeDate());
-        formApply.setWorkType(formApplyDTO.getWorkType());
-        formApply.setDescription(formApplyDTO.getDescription());
+ 
+    // Updated saveFormApply to return formId    
+    public Long saveFormApply(FormApplyDTO formApplyDTO, List<String> assignedTo, String highestApprover, UsersEntity loggedInUser) {
+        FormApplyEntity formApplyEntity = new FormApplyEntity();
+        formApplyEntity.setEmployee(loggedInUser);
+        formApplyEntity.setAppliedDate(LocalDate.now());
+        formApplyEntity.setTask(formApplyDTO.getTask());
+        formApplyEntity.setPlannedDate(formApplyDTO.getPlannedDate());
+        formApplyEntity.setPlannedStartHour(formApplyDTO.getPlannedStartHour());
+        formApplyEntity.setPlannedEndHour(formApplyDTO.getPlannedEndHour());
+        formApplyEntity.setActualDate(formApplyDTO.getActualDate());
+        formApplyEntity.setActualStartHour(formApplyDTO.getActualStartHour());
+        formApplyEntity.setActualEndHour(formApplyDTO.getActualEndHour());
+        formApplyEntity.setOvertimeDate(formApplyDTO.getOvertimeDate());
+        formApplyEntity.setWorkType(formApplyDTO.getWorkType());
+        formApplyEntity.setDescription(formApplyDTO.getDescription());
+        formApplyEntity.setFileName(formApplyDTO.getFileName());
     
         int noOfApprovers = (int) assignedTo.stream()
             .filter(approver -> List.of("PM", "DH", "DIVH").contains(approver.toUpperCase()))
             .count();
-        formApply.setNo_of_approvers(noOfApprovers);
+        formApplyEntity.setNo_of_approvers(noOfApprovers);
     
         // Set the highest approver
-        formApply.setHighest_approver(highestApprover);
+        formApplyEntity.setHighest_approver(highestApprover);
     
-        formApplyRepository.save(formApply);
-    
+        // Save formApplyEntity and return its ID
+        formApplyRepository.save(formApplyEntity);
+
         TeamEntity team = getTeamForUser(loggedInUser);
         if (team == null) {
             throw new IllegalArgumentException("User has no valid team or department for approvers.");
@@ -172,7 +179,7 @@ public class FormService {
             }
     
             AssignApproverEntity assignApproverEntity = new AssignApproverEntity();
-            assignApproverEntity.setFormApply(formApply);
+            assignApproverEntity.setFormApply(formApplyEntity);
             assignApproverEntity.setApprover(approver);
             assignApproverEntity.setApproverPosition(approverPosition);
             assignApproverEntity.setFormStatus("Pending");
@@ -183,13 +190,18 @@ public class FormService {
             if (approverPosition.equalsIgnoreCase(lowestApproverPosition)) {
                 // emailNotificationService.sendNotification(approver, formApply);
                 // eventPublisher.publishEvent(new FormStatusChangeEvent(approver, formApply));
-                sendNotificationToApprover(lowestApprover, formApply);
+                sendNotificationToApprover(lowestApprover, formApplyEntity);
 
             }
 
         }
+
+        return formApplyEntity.getFormApplyId(); // Return the formId after saving the form
+
     }
 
+
+    
     private void sendNotificationToApprover(UsersEntity lowestApprover, FormApplyEntity formApply) {
         String recipientEmail = lowestApprover.getEmail();
         String subject = "New Form Approval Request";
@@ -290,7 +302,54 @@ public class FormService {
     
         formApplyEntity.setAppliedDate(LocalDate.now()); // Update applied date automatically
         formApplyRepository.save(formApplyEntity);
+    
+        //  Handle file update (if a new file was uploaded)
+        if (formApplyDTO.getFileName() != null && !formApplyDTO.getFileName().isEmpty()) {
+            // Delete the old file before saving the new one
+            String oldFileName = formApplyEntity.getFileName();
+            if (oldFileName != null && !oldFileName.isEmpty()) {
+                Path oldFilePath = Paths.get("src/main/resources/uploads", oldFileName);
+                try {
+                    Files.deleteIfExists(oldFilePath);
+                    System.out.println("Deleted old file: " + oldFileName);
+                } catch (IOException e) {
+                    throw new RuntimeException("Error deleting old file: " + e.getMessage());
+                }
+            }
+
+            //  Set new file name
+            formApplyEntity.setFileName(formApplyDTO.getFileName());
+            System.out.println("Updated file name: " + formApplyDTO.getFileName());
+        }
+
+        //  Automatically update applied date
+        formApplyEntity.setAppliedDate(LocalDate.now());
+
+        // Save updated entity to database
+        formApplyRepository.save(formApplyEntity);
+
+        //  Debugging Logs
+        System.out.println("Updated Entity: " + formApplyEntity);
+        System.out.println("Task: " + formApplyEntity.getTask());
+        System.out.println("Planned Date: " + formApplyEntity.getPlannedDate());
+        System.out.println("Planned Start Hour: " + formApplyEntity.getPlannedStartHour());
+        System.out.println("Planned End Hour: " + formApplyEntity.getPlannedEndHour());
+        System.out.println("Actual Date: " + formApplyEntity.getActualDate());
+        System.out.println("Actual Start Hour: " + formApplyEntity.getActualStartHour());
+        System.out.println("Actual End Hour: " + formApplyEntity.getActualEndHour());
+        System.out.println("Overtime Date: " + formApplyEntity.getOvertimeDate());
+        System.out.println("Work Type: " + formApplyEntity.getWorkType());
+        System.out.println("Description: " + formApplyEntity.getDescription());
+        System.out.println("File Name: " + formApplyEntity.getFileName());
     }
+
+    public void updateFormFileName(Long formId, String fileName) {
+        FormApplyEntity form = formApplyRepository.findById(formId)
+                .orElseThrow(() -> new RuntimeException("Form not found with ID: " + formId));
+
+        form.setFileName(fileName);
+        formApplyRepository.save(form);
+    }    
     
 
 }

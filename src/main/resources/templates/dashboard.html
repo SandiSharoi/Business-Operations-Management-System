@@ -23,6 +23,7 @@
         .sidebar a {
             padding: 10px;
             transition: all 0.3s;
+            font-size: 25px;
         }
 
         .sidebar a:hover {
@@ -43,12 +44,13 @@
     <div class="row">
         <!-- Sidebar -->
         <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar text-white p-3">
-            <h3 class="text-center mt-4 mb-4">Form Application System</h3>
+            <h3 class="text-center mt-5 mb-4 display-6 border-bottom pb-2">Main Dashboard</h3>
+
             <div class="d-flex flex-column">
                 <a th:each="menuItem : ${menu}"
                    th:href="@{'/' + ${menuItem.replace(' ', '_').toLowerCase()}}"
                    target="content-frame"
-                   class="text-white text-decoration-none mb-2 d-block"
+                   class="text-white text-decoration-none mt-4 mb-2 d-block"
                    th:text="${menuItem}">
                 </a>
             </div>

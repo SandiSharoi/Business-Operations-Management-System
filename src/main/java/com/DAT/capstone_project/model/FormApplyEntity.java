@@ -54,6 +54,9 @@ public class FormApplyEntity {
 
     private String finalFormStatus; // Pending, Approved, Rejected
 
+    @Column(name = "file")  // New column to store the file path (e.g., file name)
+    private String fileName;  // Store the file path or file name as a String
+
     @PrePersist
     public void prePersist() {
         if (this.appliedDate == null) {

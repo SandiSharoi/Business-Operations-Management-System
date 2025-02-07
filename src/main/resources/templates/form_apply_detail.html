@@ -93,7 +93,21 @@
             <div class="col-sm-9">
                 <p class="form-control-plaintext" th:text="${formApplyDTO.description}"></p>
             </div>
-        </div>         
+        </div>    
+        
+            <!-- File Download Field -->
+            <div class="mb-4 row">
+                <label class="col-sm-3 col-form-label text-end fw-bold">Document</label>
+                <div class="col-sm-9">
+                    <th:block th:if="${formApplyDTO.fileName}">
+                        <a th:href="@{/downloadFile/{fileName}(fileName=${formApplyDTO.fileName})}"
+                           class="btn btn-light">
+                            <span th:text="${formApplyDTO.fileName}"></span>
+                        </a>
+                    </th:block>
+                    <p th:unless="${formApplyDTO.fileName}">No file attached</p>
+                </div>
+            </div>        
 
         <!-- Back Button -->
         <div class="row">
