@@ -42,4 +42,6 @@ public interface TeamRepository extends JpaRepository<TeamEntity, Integer>{
     @Query(value = "select * from team where name = :name and department_id  = :departId", nativeQuery = true)
     Optional<TeamEntity> findByNameAndDepartmentId(@Param("name") String name, @Param("departId") Integer departId);
 
+    boolean existsByDepartmentId(Integer departmentId);
+
 }

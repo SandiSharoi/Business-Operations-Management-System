@@ -33,7 +33,7 @@ public class DepartmentAndTeamController {
 
 
     // Department ..............................................................
-   
+
     @GetMapping("/department_list")
     public String departmentlistPage(Model model) {
         return departmentAndTeamService.showdepartmentListPage(model);
@@ -41,12 +41,12 @@ public class DepartmentAndTeamController {
 
     @PostMapping("/department_registration")
     public String departmentRegistration(RedirectAttributes redirectAttributes,
-                @ModelAttribute DepartmentEntity department) {
-        
+                                         @ModelAttribute DepartmentEntity department) {
+
         if (departmentAndTeamService.isDepartmentNameDuplicate(department.getName())) {
-                redirectAttributes.addFlashAttribute("error", "Department Name Already Exists");
-                return "redirect:/department_list"; // Redirect back to the department list page
-            }
+            redirectAttributes.addFlashAttribute("error", "Department Name Already Exists");
+            return "redirect:/department_list"; // Redirect back to the department list page
+        }
         departmentRepository.save(department);
         redirectAttributes.addFlashAttribute("message", "Department added successfully!");
         return "redirect:/department_list"; // Redirect back to the department list page
@@ -62,7 +62,7 @@ public class DepartmentAndTeamController {
         departmentAndTeamService.updateDepartment(departmentDTO);
         redirectAttributes.addFlashAttribute("message", "Department updated successfully!");
         return "redirect:/department_list"; // Redirect back to the department list page
-    }    
+    }
 
     // Team ................................................................................
 
@@ -70,11 +70,11 @@ public class DepartmentAndTeamController {
     public String teamlistPage(Model model) {
         return departmentAndTeamService.showteamListPage(model);
     }
-     
+
     @PostMapping("/team_registration")
     public String teamregistrationPost(Model model, @ModelAttribute TeamEntity teams,
-                RedirectAttributes redirectAttributes) {
-            
+                                       RedirectAttributes redirectAttributes) {
+
         // Save the populated `teams` object received from the form
         Optional<TeamEntity> teamOptional = departmentAndTeamService.isTeamNameUpdate(teams);
 
@@ -92,10 +92,10 @@ public class DepartmentAndTeamController {
 
     @PostMapping("/team_update")
     public String updateTeam(@ModelAttribute TeamDTO teamDTO, Model model, RedirectAttributes redirectAttributes) {
-         System.out.println("Team Name " + teamDTO.getName());
-         System.out.println("Department ID " + teamDTO.getDeparmentId());
+        System.out.println("Team Name " + teamDTO.getName());
+        System.out.println("Department ID " + teamDTO.getDepartmentId());
 
-        Integer dID = teamDTO.getDeparmentId();
+        Integer dID = teamDTO.getDepartmentId();
 
         Optional<TeamEntity> teamOptional = departmentAndTeamService.isDuplicateTeamNameOnUpdate(teamDTO);
 
@@ -108,6 +108,27 @@ public class DepartmentAndTeamController {
         departmentAndTeamService.updateTeam(teamDTO, dID );
         redirectAttributes.addFlashAttribute("message", "Team updated successfully!");
         return "redirect:/team_list"; // Redirect to team list page
+    }
+
+    @PostMapping("/departments/delete/{id}")
+    public String deleteDepartment(@PathVariable Integer id, Model model, RedirectAttributes redirectAttributes) {
+        // Check if there are any teams linked to this department
+        if (departmentAndTeamService.hasTeamsLinkedToDepartment(id)) {
+            // If teams are found, add an error message
+
+            redirectAttributes.addFlashAttribute("error",
+                    "There are existing teams linked to this department. Unable to delete.");
+
+            return "redirect:/department_list";
+        }
+
+        // If no teams are linked, proceed with deletion
+        departmentAndTeamService.deleteDepartment(id);
+
+        // Add a success message to be displayed on the next request
+        redirectAttributes.addFlashAttribute("message", "Department deleted successfully.");
+
+        return "redirect:/department_list"; // Redirect back to the department list page
     }
 
 }
