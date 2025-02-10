@@ -57,6 +57,9 @@ public class FormApplyEntity {
     @Column(name = "file")  // New column to store the file path (e.g., file name)
     private String fileName;  // Store the file path or file name as a String
 
+    @Column(columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private Boolean editPermission = true;
+
     @PrePersist
     public void prePersist() {
         if (this.appliedDate == null) {

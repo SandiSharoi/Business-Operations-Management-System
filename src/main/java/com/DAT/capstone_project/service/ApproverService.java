@@ -112,6 +112,8 @@ public class ApproverService {
         FormApplyEntity formApply = formApplyRepository.findById(formId)
                 .orElseThrow(() -> new IllegalArgumentException("Form not found with ID: " + formId));
 
+        formApply.setEditPermission(false); // Disable editing................
+
         // Determine the next approver based on the current approver's position
         String nextApproverPosition = getNextApproverPosition(approver.getApproverPosition());
 
@@ -159,9 +161,11 @@ public class ApproverService {
 
         FormApplyEntity formApply = formApplyRepository.findById(formId)
                 .orElseThrow(() -> new IllegalArgumentException("Form not found with ID: " + formId));
-
+                
         formApply.setFinalFormStatus("Reject");
         formApplyRepository.save(formApply);
+        formApply.setEditPermission(false); // Disable editing
+
         // Publish event for mail notification to the form submitter................
         eventPublisher.publishEvent(new FormStatusChangeEvent(this, formApply));
     }
