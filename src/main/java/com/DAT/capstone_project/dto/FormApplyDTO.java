@@ -49,4 +49,6 @@ public class FormApplyDTO {
     // A list of approver positions (PM, DH, DivH) selected in the form
     private List<String> assignedApprovers;
 
+    private Boolean editPermission;
+
 }
