@@ -172,10 +172,10 @@ public class ApproverService {
 
     private String getNextApproverPosition(String currentPosition) {
         switch (currentPosition.toUpperCase()) {
-            case "PM":
-                return "DH";
-            case "DH":
-                return "DivH";
+            case "Project Manager":
+                return "Department Head";
+            case "Department Head":
+                return "Division Head";
             default:
                 return null;
         }
@@ -200,14 +200,14 @@ public class ApproverService {
     
 
     private boolean isHigherPosition(String higherPosition, String currentPosition) {
-        List<String> hierarchy = Arrays.asList("PM", "DH", "DivH");
+        List<String> hierarchy = Arrays.asList("Project Manager", "Department Head", "Division Head");
         int higherIndex = hierarchy.indexOf(higherPosition);
         int currentIndex = hierarchy.indexOf(currentPosition);
         return higherIndex > currentIndex;
     }
 
     private boolean isHigherLevelOnly(String currentPosition, Set<String> assignedPositions) {
-        List<String> hierarchy = Arrays.asList("PM", "DH", "DivH");
+        List<String> hierarchy = Arrays.asList("Project Manager", "Department Head", "Division Head");
         int currentIndex = hierarchy.indexOf(currentPosition);
 
         return assignedPositions.stream()
@@ -215,7 +215,7 @@ public class ApproverService {
     }
 
     private boolean isLowerPosition(String lowerPosition, String currentPosition) {
-        List<String> hierarchy = Arrays.asList("PM", "DH", "DivH");
+        List<String> hierarchy = Arrays.asList("Project Manager", "Department Head", "Division Head");
         int lowerIndex = hierarchy.indexOf(lowerPosition);
         int currentIndex = hierarchy.indexOf(currentPosition);
         return lowerIndex < currentIndex;
