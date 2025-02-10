@@ -14,8 +14,11 @@
 <section class="d-flex justify-content-center align-items-center min-vh-100">
     
     <!-- Form Card -->
-    <div class="card col-lg-8 col-md-10 p-5 rounded-3 shadow-lg bg-white">
+    <!-- <div class="card col-lg-8 col-md-10 p-5 rounded-3 shadow-lg bg-white"> -->
+        <div class="card col-lg-8 col-md-10 p-5 rounded-3 shadow-lg fw-bold" style="background-color: #DAE7CF; color: #62914D;">
+        
         <h1 class="text-center text-dark mb-4">Apply for Overtime</h1>
+
 
         <div th:if="${error}" class="alert alert-danger" role="alert">
             <p th:text="${error}"></p>
