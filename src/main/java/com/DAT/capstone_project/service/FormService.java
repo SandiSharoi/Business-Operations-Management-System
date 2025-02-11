@@ -147,7 +147,7 @@ public class FormService {
         formApplyEntity.setFileName(formApplyDTO.getFileName());
     
         int noOfApprovers = (int) assignedTo.stream()
-            .filter(approver -> List.of("Project Manager", "Department Head", "Division Head").contains(approver.toUpperCase()))
+            .filter(approver -> List.of("Project Manager", "Department Head", "Division Head").contains(approver))
             .count();
         formApplyEntity.setNo_of_approvers(noOfApprovers);
     
@@ -167,7 +167,7 @@ public class FormService {
         UsersEntity lowestApprover = getApproverByPosition(team, lowestApproverPosition);
         
         for (String approverPosition : assignedTo) {
-            UsersEntity approver = switch (approverPosition.toUpperCase()) {
+            UsersEntity approver = switch (approverPosition) {
                 case "Project Manager" -> team.getPm();
                 case "Department Head" -> team.getDh();
                 case "Division Head" -> team.getDivh();
@@ -231,7 +231,7 @@ public class FormService {
     }
 
     private UsersEntity getApproverByPosition(TeamEntity team, String position) {
-        return switch (position.toUpperCase()) {
+        return switch (position) {
             case "Project Manager" -> team.getPm();
             case "Department Head" -> team.getDh();
             case "Division Head" -> team.getDivh();

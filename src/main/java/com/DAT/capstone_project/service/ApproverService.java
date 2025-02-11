@@ -171,7 +171,7 @@ public class ApproverService {
     }
 
     private String getNextApproverPosition(String currentPosition) {
-        switch (currentPosition.toUpperCase()) {
+        switch (currentPosition) {
             case "Project Manager":
                 return "Department Head";
             case "Department Head":
