@@ -4,119 +4,127 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Form Details</title>
-    <link rel="icon" type="image/png" href="../static/images/logo.png">
+    <link th:href="@{/images/logo.png}" rel="icon" type="image/png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <style>
+        .text-3d {
+            text-shadow: 4px 4px 6px rgba(0, 0, 0, 0.2),   /* Darker shadow for depth */
+                         -4px -4px 6px rgba(255, 255, 255, 0.9), /* Brighter top-left highlight */
+                         2px 2px 3px rgba(255, 255, 255, 0.7); /* Soft glow effect */
+        }
+
+    </style>
+
 </head>
-<body class="bg-light">
+<body>
 
-<section class="d-flex justify-content-center align-items-center min-vh-100">
-    <div class="card col-lg-8 col-md-10 p-5 rounded-3 shadow-lg bg-white">
-        <h1 class="text-center text-dark mb-4">Form Details</h1>
+<!-- Hero Section -->
+<section class="hero-section d-flex justify-content-center align-items-center min-vh-100 bg-light p-4">
+    <!-- Form Details Card -->
+    <div class="card col-lg-8 col-md-10 p-5 rounded-3 shadow-lg" style="background-color:#CCE7C2; color: white;">
+        <h1 class="text-center mb-4 fw-bold text-3d" style="color: #3D8D7A;">Form Details</h1>
 
-
-        <!-- Task -->
-        <div class="mb-4 row">
-            <label class="col-sm-3 col-form-label text-end fw-bold">Task</label>
-            <div class="col-sm-9">
-                <p class="form-control-plaintext" th:text="${formApplyDTO.task}"></p>
+        <form>
+            <!-- Task -->
+            <div class="mb-3 row">
+                <label class="col-sm-3 col-form-label fw-bold">Task</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" th:value="${formApplyDTO.task}" readonly>
+                </div>
             </div>
-        </div>
 
-        <!-- Planned Date -->
-        <div class="mb-4 row">
-            <label class="col-sm-3 col-form-label text-end fw-bold">Planned Date</label>
-            <div class="col-sm-9">
-                <p class="form-control-plaintext" th:text="${formApplyDTO.plannedDate}"></p>
+            <!-- Planned Date -->
+            <div class="mb-3 row">
+                <label class="col-sm-3 col-form-label fw-bold">Planned Date</label>
+                <div class="col-sm-9">
+                    <input type="date" class="form-control" th:value="${formApplyDTO.plannedDate}" readonly>
+                </div>
             </div>
-        </div>
 
-        <!-- Planned Start Hour -->
-        <div class="mb-4 row">
-            <label class="col-sm-3 col-form-label text-end fw-bold">Planned Start Hour</label>
-            <div class="col-sm-9">
-                <p class="form-control-plaintext" th:text="${formApplyDTO.plannedStartHour}"></p>
+            <!-- Planned Start Hour -->
+            <div class="mb-3 row">
+                <label class="col-sm-3 col-form-label fw-bold">Planned Start Hour</label>
+                <div class="col-sm-9">
+                    <input type="time" class="form-control" th:value="${formApplyDTO.plannedStartHour}" readonly>
+                </div>
             </div>
-        </div>
 
-        <!-- Planned End Hour -->
-        <div class="mb-4 row">
-            <label class="col-sm-3 col-form-label text-end fw-bold">Planned End Hour</label>
-            <div class="col-sm-9">
-                <p class="form-control-plaintext" th:text="${formApplyDTO.plannedEndHour}"></p>
+            <!-- Planned End Hour -->
+            <div class="mb-3 row">
+                <label class="col-sm-3 col-form-label fw-bold">Planned End Hour</label>
+                <div class="col-sm-9">
+                    <input type="time" class="form-control" th:value="${formApplyDTO.plannedEndHour}" readonly>
+                </div>
             </div>
-        </div>                                              
-  
-        <!-- Actual Date -->
-        <div class="mb-4 row">
-            <label class="col-sm-3 col-form-label text-end fw-bold">Actual Date</label>
-            <div class="col-sm-9">
-                <p class="form-control-plaintext" th:text="${formApplyDTO.actualDate}"></p>
-            </div>
-        </div>
 
+            <!-- Actual Date -->
+            <div class="mb-3 row">
+                <label class="col-sm-3 col-form-label fw-bold">Actual Date</label>
+                <div class="col-sm-9">
+                    <input type="date" class="form-control" th:value="${formApplyDTO.actualDate}" readonly>
+                </div>
+            </div>
 
-        <!-- Actual Start Hour -->
-        <div class="mb-4 row">
-            <label class="col-sm-3 col-form-label text-end fw-bold">Actual Start Hour</label>
-            <div class="col-sm-9">
-                <p class="form-control-plaintext" th:text="${formApplyDTO.actualStartHour}"></p>
+            <!-- Actual Start Hour -->
+            <div class="mb-3 row">
+                <label class="col-sm-3 col-form-label fw-bold">Actual Start Hour</label>
+                <div class="col-sm-9">
+                    <input type="time" class="form-control" th:value="${formApplyDTO.actualStartHour}" readonly>
+                </div>
             </div>
-        </div>
 
-        <!-- Actual End Hour -->
-        <div class="mb-4 row">
-            <label class="col-sm-3 col-form-label text-end fw-bold">Actual End Hour</label>
-            <div class="col-sm-9">
-                <p class="form-control-plaintext" th:text="${formApplyDTO.actualEndHour}"></p>
+            <!-- Actual End Hour -->
+            <div class="mb-3 row">
+                <label class="col-sm-3 col-form-label fw-bold">Actual End Hour</label>
+                <div class="col-sm-9">
+                    <input type="time" class="form-control" th:value="${formApplyDTO.actualEndHour}" readonly>
+                </div>
             </div>
-        </div>
 
-        <!-- Overtime Date -->
-        <div class="mb-4 row">
-            <label class="col-sm-3 col-form-label text-end fw-bold">Overtime Date</label>
-            <div class="col-sm-9">
-                <p class="form-control-plaintext" th:text="${formApplyDTO.overtimeDate}"></p>
+            <!-- Overtime Date -->
+            <div class="mb-3 row">
+                <label class="col-sm-3 col-form-label fw-bold">Overtime Date</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" th:value="${formApplyDTO.overtimeDate}" readonly>
+                </div>
             </div>
-        </div>
 
-        <!-- Work Type -->
-        <div class="mb-4 row">
-            <label class="col-sm-3 col-form-label text-end fw-bold">Work Type</label>
-            <div class="col-sm-9">
-                <p class="form-control-plaintext" th:text="${formApplyDTO.workType}"></p>
+            <!-- Work Type -->
+            <div class="mb-3 row">
+                <label class="col-sm-3 col-form-label fw-bold">Work Type</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" th:value="${formApplyDTO.workType}" readonly>
+                </div>
             </div>
-        </div> 
-        
-        <!-- Description -->
-        <div class="mb-4 row">
-            <label class="col-sm-3 col-form-label text-end fw-bold">Description</label>
-            <div class="col-sm-9">
-                <p class="form-control-plaintext" th:text="${formApplyDTO.description}"></p>
+
+            <!-- Description -->
+            <div class="mb-3 row">
+                <label class="col-sm-3 col-form-label fw-bold">Description</label>
+                <div class="col-sm-9">
+                    <textarea class="form-control" rows="3" th:text="${formApplyDTO.description}" readonly></textarea>
+                </div>
             </div>
-        </div>    
-        
+
             <!-- File Download Field -->
-            <div class="mb-4 row">
-                <label class="col-sm-3 col-form-label text-end fw-bold">Document</label>
+            <div class="mb-3 row">
+                <label class="col-sm-3 col-form-label fw-bold">Document</label>
                 <div class="col-sm-9">
                     <th:block th:if="${formApplyDTO.fileName}">
-                        <a th:href="@{/downloadFile/{fileName}(fileName=${formApplyDTO.fileName})}"
-                           class="btn btn-light">
+                        <a th:href="@{/downloadFile/{fileName}(fileName=${formApplyDTO.fileName})}" class="btn btn-light">
                             <span th:text="${formApplyDTO.fileName}"></span>
                         </a>
                     </th:block>
                     <p th:unless="${formApplyDTO.fileName}">No file attached</p>
                 </div>
-            </div>        
-
-        <!-- Back Button -->
-        <div class="row">
-            <div class="col-sm-9 offset-sm-3">
-                <a th:href="@{'/' + ${source}}" class="btn btn-dark">Back</a>
             </div>
-        </div>
-        
 
+            <!-- Back Button -->
+            <div class="d-flex justify-content-center mt-4">
+                <button type="button" class="btn btn-primary px-4 w-50" onclick="history.back()">Back</button>
+            </div>
+
+        </form>
     </div>
 </section>
 
