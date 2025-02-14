@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 @Service
 public class DepartmentAndTeamService {
 
-
     @Autowired
     private TeamRepository teamRepository;
 
@@ -29,15 +28,13 @@ public class DepartmentAndTeamService {
     @Autowired
     private ModelMapper modelMapper;
 
-
     // Department and Team ........................................................
-
 
     public String showdepartmentListPage(Model model) {
         List<DepartmentEntity> departmentEntities = departmentRepository.findAllByOrderByIdAsc();
         List<DepartmentDTO> department = departmentEntities.stream()
-            .map(entity -> modelMapper.map(entity, DepartmentDTO.class))
-            .collect(Collectors.toList());
+                .map(entity -> modelMapper.map(entity, DepartmentDTO.class))
+                .collect(Collectors.toList());
         model.addAttribute("department", department);
         return "department_list"; // This should match your Thymeleaf template name
     }
@@ -45,27 +42,26 @@ public class DepartmentAndTeamService {
     public String showteamListPage(Model model) {
         List<TeamEntity> teamEntities = teamRepository.findAllByOrderByIdAsc();
         List<TeamDTO> team = teamEntities.stream()
-            .map(entity -> modelMapper.map(entity, TeamDTO.class))
-            .collect(Collectors.toList());
+                .map(entity -> modelMapper.map(entity, TeamDTO.class))
+                .collect(Collectors.toList());
         List<DepartmentEntity> departmentEntities = departmentRepository.findAllByOrderByIdAsc();
         List<DepartmentDTO> department = departmentEntities.stream()
-            .map(entity -> modelMapper.map(entity, DepartmentDTO.class))
-            .collect(Collectors.toList());
+                .map(entity -> modelMapper.map(entity, DepartmentDTO.class))
+                .collect(Collectors.toList());
         model.addAttribute("departments", department);
         model.addAttribute("team", team);
         model.addAttribute("teamObject", new TeamEntity());
         return "team_list"; // This should match your Thymeleaf template name
     }
-    
+
     public DepartmentDTO getDepartmentById(Integer id) {
         // Fetch the department by ID
         DepartmentEntity departmentEntity = departmentRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Department not found"));
-    
+                .orElseThrow(() -> new IllegalArgumentException("Department not found"));
+
         // Map the entity to DTO (ensure modelMapper is properly configured)
         return modelMapper.map(departmentEntity, DepartmentDTO.class);
     }
-    
 
     public boolean isDuplicateDepartmentNameOnUpdate(DepartmentDTO departmentDTO) {
         // Check if a department with the same name exists but has a different ID
@@ -93,17 +89,17 @@ public class DepartmentAndTeamService {
     }
 
     public Optional<TeamEntity> isTeamNameUpdate(TeamEntity teams) {
-        return teamRepository.findByNameAndDepartmentId(teams.getName(), teams.getDepartment().getId());
+        return teamRepository.findByNameAndDepartmentId(teams.getName().toLowerCase(), teams.getDepartment().getId());
     }
-    
+
+    public Optional<TeamEntity> isDuplicateTeamNameOnUpdate(TeamDTO teamDTO) {
+        return teamRepository.findByNameAndDepartmentId(teamDTO.getName().toLowerCase(), teamDTO.getDepartmentId());
+    }
+
     public TeamDTO getTeamById(Integer id) {
         TeamEntity teamEntity = teamRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
         return modelMapper.map(teamEntity, TeamDTO.class);
-    }
-
-    public Optional<TeamEntity> isDuplicateTeamNameOnUpdate(TeamDTO teamDTO) {
-        return teamRepository.findByNameAndDepartmentId(teamDTO.getName(), teamDTO.getDeparmentId());
     }
 
     public void updateTeam(TeamDTO teamDTO) {
@@ -114,33 +110,43 @@ public class DepartmentAndTeamService {
         TeamEntity existingTeam = teamRepository.findById(teamDTO.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
 
-        existingTeam.setName(teamDTO.getName()); 
-        DepartmentEntity  departmentEntity = new DepartmentEntity();
-        departmentEntity.setId(teamDTO.getDeparmentId());
-        existingTeam.setDepartment(departmentEntity);   
+        existingTeam.setName(teamDTO.getName());
+        DepartmentEntity departmentEntity = new DepartmentEntity();
+        departmentEntity.setId(teamDTO.getDepartmentId());
+        existingTeam.setDepartment(departmentEntity);
 
         teamRepository.save(existingTeam);
-    }   
-    
+    }
+
     public void updateTeam(TeamDTO teamDTO, Integer dID) {
         if (teamDTO.getId() == null) {
             throw new IllegalArgumentException("Team ID must not be null");
         }
-    
+
         // Fetch the existing team
         TeamEntity existingTeam = teamRepository.findById(teamDTO.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
-    
+
         existingTeam.setName(teamDTO.getName());
-    
+
         // Fetch the existing DepartmentEntity from the database
-        // DepartmentEntity departmentEntity = departmentRepository.findById(teamDTO.getDepartment().getId())
-        DepartmentEntity departmentEntity = departmentRepository.findById(teamDTO.getDeparmentId())
-            .orElseThrow(() -> new IllegalArgumentException("Department not found"));
+        // DepartmentEntity departmentEntity =
+        // departmentRepository.findById(teamDTO.getDepartment().getId())
+        DepartmentEntity departmentEntity = departmentRepository.findById(teamDTO.getDepartmentId())
+                .orElseThrow(() -> new IllegalArgumentException("Department not found"));
         existingTeam.setDepartment(departmentEntity);
-    
+
         // Save the updated team
         teamRepository.save(existingTeam);
     }
-    
+
+    public void deleteDepartment(Integer id) {
+        departmentRepository.deleteById(id); // Deletes the user with the given ID from the database
+    }
+
+    public boolean hasTeamsLinkedToDepartment(Integer departmentId) {
+        // Query the team table to check if any teams are linked to the department
+        return teamRepository.existsByDepartmentId(departmentId);
+    }
+
 }
