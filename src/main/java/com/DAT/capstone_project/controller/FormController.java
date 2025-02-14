@@ -75,7 +75,7 @@ public class FormController {
 
         String userPosition = loggedInUser.getPosition().getName();
         List<String> assignedApprovers = formApplyDTO.getAssignedApprovers();
-        List<String> hierarchy = Arrays.asList("PM", "DH", "DivH");
+        List<String> hierarchy = Arrays.asList("Project Manager", "Department Head", "Division Head");
         int userIndex = hierarchy.indexOf(userPosition);
         List<String> validApprovers = hierarchy.subList(userIndex + 1, hierarchy.size());
 

@@ -10,8 +10,8 @@
     <div class="container mt-5">
         <h2 class="text-center">Check Form Status</h2>
         <div class="table-responsive">
-            <table class="table table-striped table-bordered">
-                <thead class="table-dark text-center">
+            <table class="table table-striped table-bordered text-center">
+                <thead class="table-primary ">
                     <tr>
                         <th>#</th>
                         <th>Form ID</th>
@@ -44,8 +44,9 @@
                         </td>
                         
 
-                        <td th:if="${form.finalFormStatus} == null" class="text-center">Pending</td>
-                        <td th:unless="${form.finalFormStatus} == null" th:text="${form.finalFormStatus}" class="text-center"></td>
+                        <td th:if="${form.finalFormStatus} == null" class="text-center text-warning">Pending</td>
+                        <td th:unless="${form.finalFormStatus} == null" th:text="${form.finalFormStatus}" th:classappend="${form.finalFormStatus == 'Approve' ? 'text-success' : (form.finalFormStatus == 'Reject' ? 'text-danger' : '')}"
+                        class="text-center"></td>
                     </tr>
                 </tbody>
             </table>

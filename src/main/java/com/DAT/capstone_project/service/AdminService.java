@@ -99,7 +99,7 @@ public class AdminService {
                 return "dashboard";
             case "APPROVER":
                 // Add the check for "DivH" position
-                if ("DIVH".equalsIgnoreCase(position)) {
+                if ("Division Head".equalsIgnoreCase(position)) {
                     model.addAttribute("menu", List.of("Form Decision"));
                 } else {
                     model.addAttribute("menu", List.of("Form Apply", "Check Form Status", "Form Decision"));
@@ -153,7 +153,7 @@ public class AdminService {
     
 
             // Check if the position is already assigned for the selected team or department...........................
-            if (user_position_name.equalsIgnoreCase("PM")) {
+            if (user_position_name.equalsIgnoreCase("Project Manager")) {
                 TeamEntity team = teamRepository.findById(usersDTO.getTeam().getId())
                         .orElseThrow(() -> new IllegalArgumentException("Invalid Team ID"));
                 if (team.getPm() != null) {
@@ -166,7 +166,7 @@ public class AdminService {
                 }
             } 
             
-            else if (user_position_name.equalsIgnoreCase("DH")) {
+            else if (user_position_name.equalsIgnoreCase("Department Head")) {
                 DepartmentEntity department = departmentRepository.findById(usersDTO.getDepartment().getId())
                         .orElseThrow(() -> new IllegalArgumentException("Invalid Department ID"));
                 List<TeamEntity> teams = teamRepository.findByDepartmentId(department.getId());
@@ -182,7 +182,7 @@ public class AdminService {
                 }
             }
             
-            else if (user_position_name.equalsIgnoreCase("DivH")) {
+            else if (user_position_name.equalsIgnoreCase("Division Head")) {
                 List<Integer> departmentIds = usersDTO.getDepartmentIds();
                 if (departmentIds == null || departmentIds.isEmpty()) {
                     throw new IllegalArgumentException("At least one department must be selected for DivH.");
@@ -201,7 +201,7 @@ public class AdminService {
             }
 
             // Case 1: DH → Only department should be saved, team should be NULL
-            if ( user_position_name.equalsIgnoreCase("DH")) {
+            if ( user_position_name.equalsIgnoreCase("Department Head")) {
                 DepartmentEntity department = departmentRepository.findById(usersDTO.getDepartment().getId())
                         .orElseThrow(() -> new IllegalArgumentException("Invalid Department ID"));
 
@@ -219,7 +219,7 @@ public class AdminService {
             }
 
             // Case 2: DivH → Team & Department should be NULL, user is assigned to multiple departments
-            else if (user_position_name.equalsIgnoreCase("DivH")) {
+            else if (user_position_name.equalsIgnoreCase("Division Head")) {
                 user.setTeam(null);  // Ensure team_id is NULL
                 user.setDepartment(null);  // Ensure department_id is NULL
     
@@ -261,7 +261,7 @@ public class AdminService {
             }
     
             // Save user (if not DivH, as it's already saved earlier)
-            if (!user_position_name.equalsIgnoreCase("DivH")) {
+            if (!user_position_name.equalsIgnoreCase("Division Head")) {
                 usersRepository.save(user);
             }
     

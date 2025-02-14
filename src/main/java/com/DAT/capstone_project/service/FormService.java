@@ -71,19 +71,19 @@ public class FormService {
         List<AssignApproverDTO> approvers = new ArrayList<>();
     
         // Logic for PM position (show all PM, DH, DivH)
-        if ("PM".equalsIgnoreCase(userPosition)) {
-            approvers.add(createAssignApproverDTO(team.getDh(), "DH"));
-            approvers.add(createAssignApproverDTO(team.getDivh(), "DivH"));
+        if ("Project Manager".equalsIgnoreCase(userPosition)) {
+            approvers.add(createAssignApproverDTO(team.getDh(), "Department Head"));
+            approvers.add(createAssignApproverDTO(team.getDivh(), "Division Head"));
         }
         // Logic for DH position (show DH and DivH only)
-        else if ("DH".equalsIgnoreCase(userPosition)) {
-            approvers.add(createAssignApproverDTO(team.getDivh(), "DivH"));
+        else if ("Department Head".equalsIgnoreCase(userPosition)) {
+            approvers.add(createAssignApproverDTO(team.getDivh(), "Division Head"));
         }
         // Logic for other positions (show PM, DH, DivH)
         else {
-            approvers.add(createAssignApproverDTO(team.getPm(), "PM"));
-            approvers.add(createAssignApproverDTO(team.getDh(), "DH"));
-            approvers.add(createAssignApproverDTO(team.getDivh(), "DivH"));
+            approvers.add(createAssignApproverDTO(team.getPm(), "Project Manager"));
+            approvers.add(createAssignApproverDTO(team.getDh(), "Department Head"));
+            approvers.add(createAssignApproverDTO(team.getDivh(), "Division Head"));
         }
     
         // Remove null values
@@ -120,7 +120,7 @@ public class FormService {
 
 
         // Set checked to true for certain approvers based on logic
-        if ("PM".equalsIgnoreCase(position)) {
+        if ("Project Manager".equalsIgnoreCase(position)) {
             dto.setChecked(true); // Example: Set "PM" to true, or implement more logic as needed
         }
 
@@ -147,7 +147,7 @@ public class FormService {
         formApplyEntity.setFileName(formApplyDTO.getFileName());
     
         int noOfApprovers = (int) assignedTo.stream()
-            .filter(approver -> List.of("PM", "DH", "DIVH").contains(approver.toUpperCase()))
+            .filter(approver -> List.of("Project Manager", "Department Head", "Division Head").contains(approver))
             .count();
         formApplyEntity.setNo_of_approvers(noOfApprovers);
     
@@ -167,10 +167,10 @@ public class FormService {
         UsersEntity lowestApprover = getApproverByPosition(team, lowestApproverPosition);
         
         for (String approverPosition : assignedTo) {
-            UsersEntity approver = switch (approverPosition.toUpperCase()) {
-                case "PM" -> team.getPm();
-                case "DH" -> team.getDh();
-                case "DIVH" -> team.getDivh();
+            UsersEntity approver = switch (approverPosition) {
+                case "Project Manager" -> team.getPm();
+                case "Department Head" -> team.getDh();
+                case "Division Head" -> team.getDivh();
                 default -> null;
             };
     
@@ -221,7 +221,7 @@ public class FormService {
     
     
     private String determineLowestApprover(List<String> assignedTo) {
-        List<String> hierarchy = Arrays.asList("PM", "DH", "DIVH");
+        List<String> hierarchy = Arrays.asList("Project Manager", "Department Head", "Division Head");
         for (String position : hierarchy) {
             if (assignedTo.contains(position)) {
                 return position;
@@ -231,10 +231,10 @@ public class FormService {
     }
 
     private UsersEntity getApproverByPosition(TeamEntity team, String position) {
-        return switch (position.toUpperCase()) {
-            case "PM" -> team.getPm();
-            case "DH" -> team.getDh();
-            case "DIVH" -> team.getDivh();
+        return switch (position) {
+            case "Project Manager" -> team.getPm();
+            case "Department Head" -> team.getDh();
+            case "Division Head" -> team.getDivh();
             default -> null;
         };
     }   
