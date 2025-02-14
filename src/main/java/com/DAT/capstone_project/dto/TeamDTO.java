@@ -22,6 +22,6 @@ public class TeamDTO {
 
     // private Integer depId;
 
-    private Integer deparmentId;
+    private Integer departmentId;
 
 }

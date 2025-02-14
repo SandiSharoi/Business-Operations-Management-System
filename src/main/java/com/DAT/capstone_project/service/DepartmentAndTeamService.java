@@ -96,14 +96,16 @@ public class DepartmentAndTeamService {
         return teamRepository.findByNameAndDepartmentId(teams.getName(), teams.getDepartment().getId());
     }
     
+
     public TeamDTO getTeamById(Integer id) {
         TeamEntity teamEntity = teamRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
         return modelMapper.map(teamEntity, TeamDTO.class);
     }
 
+    
     public Optional<TeamEntity> isDuplicateTeamNameOnUpdate(TeamDTO teamDTO) {
-        return teamRepository.findByNameAndDepartmentId(teamDTO.getName(), teamDTO.getDeparmentId());
+        return teamRepository.findByNameAndDepartmentId(teamDTO.getName(), teamDTO.getDepartmentId());
     }
 
     public void updateTeam(TeamDTO teamDTO) {
@@ -116,7 +118,7 @@ public class DepartmentAndTeamService {
 
         existingTeam.setName(teamDTO.getName()); 
         DepartmentEntity  departmentEntity = new DepartmentEntity();
-        departmentEntity.setId(teamDTO.getDeparmentId());
+        departmentEntity.setId(teamDTO.getDepartmentId());
         existingTeam.setDepartment(departmentEntity);   
 
         teamRepository.save(existingTeam);
@@ -135,12 +137,21 @@ public class DepartmentAndTeamService {
     
         // Fetch the existing DepartmentEntity from the database
         // DepartmentEntity departmentEntity = departmentRepository.findById(teamDTO.getDepartment().getId())
-        DepartmentEntity departmentEntity = departmentRepository.findById(teamDTO.getDeparmentId())
+        DepartmentEntity departmentEntity = departmentRepository.findById(teamDTO.getDepartmentId())
             .orElseThrow(() -> new IllegalArgumentException("Department not found"));
         existingTeam.setDepartment(departmentEntity);
     
         // Save the updated team
         teamRepository.save(existingTeam);
     }
-    
+
+    public void deleteDepartment(Integer id) {
+        departmentRepository.deleteById(id); // Deletes the user with the given ID from the database
+    }
+
+    public boolean hasTeamsLinkedToDepartment(Integer departmentId) {
+        // Query the team table to check if any teams are linked to the department
+        return teamRepository.existsByDepartmentId(departmentId);
+    }
+
 }
