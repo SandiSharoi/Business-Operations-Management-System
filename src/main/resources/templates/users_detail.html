@@ -43,7 +43,8 @@
                 <input type="tel" id="phone" th:field="*{phone}" class="form-control" th:readonly="${!isEditable}" style="flex: 1;">
             </div>
 
-            <div class="mb-3 d-flex align-items-center">
+            <!-- Position Field (Show only if not null) -->
+            <div class="mb-3 d-flex align-items-center" th:if="${user.position != null}">
                 <label for="position" class="form-label fw-bold w-25">Position</label>
                 <div th:if="${isEditable}" style="flex: 1;">
                     <select id="position" th:field="*{position.id}" class="form-select" required>
@@ -57,7 +58,8 @@
                 </div>
             </div>
 
-            <div class="mb-3 d-flex align-items-center">
+            <!-- Team Field (Show only if not null) -->
+            <div class="mb-3 d-flex align-items-center" th:if="${user.team != null}">
                 <label for="team" class="form-label fw-bold w-25">Team</label>
                 <div th:if="${isEditable}" style="flex: 1;">
                     <select id="team" th:field="*{team.id}" class="form-select" required>
@@ -71,7 +73,8 @@
                 </div>
             </div>
 
-            <div class="mb-3 d-flex align-items-center">
+            <!-- Department Field (Show only if not null) -->
+            <div class="mb-3 d-flex align-items-center" th:if="${user.position != null} ">
                 <label for="department" class="form-label fw-bold w-25">Department</label>
                 <div th:if="${isEditable}" style="flex: 1;">
                     <select id="department" th:field="*{department.id}" class="form-select" required>
@@ -85,7 +88,8 @@
                 </div>
             </div>
 
-            <div class="mb-3 d-flex align-items-center">
+            <!-- Role Field (Show only if not null) -->
+            <div class="mb-3 d-flex align-items-center" th:if="${user.role != null}">
                 <label for="role" class="form-label fw-bold w-25">Role</label>
                 <div th:if="${isEditable}" style="flex: 1;">
                     <select id="role" th:field="*{role.id}" class="form-select" required>
