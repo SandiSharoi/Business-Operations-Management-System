@@ -19,9 +19,4 @@ public class TeamDTO {
     
     @ToString.Exclude
     private UsersDTO divh;  // Use UsersDTO instead of UsersEntity
-
-    // private Integer depId;
-
-    private Integer departmentId;
-
 }

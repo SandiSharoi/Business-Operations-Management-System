@@ -33,7 +33,7 @@ public class DepartmentAndTeamController {
 
 
     // Department ..............................................................
-
+   
     @GetMapping("/department_list")
     public String departmentlistPage(Model model) {
         return departmentAndTeamService.showdepartmentListPage(model);
@@ -41,12 +41,12 @@ public class DepartmentAndTeamController {
 
     @PostMapping("/department_registration")
     public String departmentRegistration(RedirectAttributes redirectAttributes,
-                                         @ModelAttribute DepartmentEntity department) {
-
+                @ModelAttribute DepartmentEntity department) {
+        
         if (departmentAndTeamService.isDepartmentNameDuplicate(department.getName())) {
-            redirectAttributes.addFlashAttribute("error", "Department Name Already Exists");
-            return "redirect:/department_list"; // Redirect back to the department list page
-        }
+                redirectAttributes.addFlashAttribute("error", "Department Name Already Exists");
+                return "redirect:/department_list"; // Redirect back to the department list page
+            }
         departmentRepository.save(department);
         redirectAttributes.addFlashAttribute("message", "Department added successfully!");
         return "redirect:/department_list"; // Redirect back to the department list page
@@ -62,7 +62,7 @@ public class DepartmentAndTeamController {
         departmentAndTeamService.updateDepartment(departmentDTO);
         redirectAttributes.addFlashAttribute("message", "Department updated successfully!");
         return "redirect:/department_list"; // Redirect back to the department list page
-    }
+    }    
 
     // Team ................................................................................
 
@@ -70,11 +70,11 @@ public class DepartmentAndTeamController {
     public String teamlistPage(Model model) {
         return departmentAndTeamService.showteamListPage(model);
     }
-
+     
     @PostMapping("/team_registration")
     public String teamregistrationPost(Model model, @ModelAttribute TeamEntity teams,
-                                       RedirectAttributes redirectAttributes) {
-
+                RedirectAttributes redirectAttributes) {
+            
         // Save the populated `teams` object received from the form
         Optional<TeamEntity> teamOptional = departmentAndTeamService.isTeamNameUpdate(teams);
 
@@ -91,24 +91,29 @@ public class DepartmentAndTeamController {
 
 
     @PostMapping("/team_update")
-    public String updateTeam(@ModelAttribute TeamDTO teamDTO, Model model, RedirectAttributes redirectAttributes) {
-        System.out.println("Team Name " + teamDTO.getName());
-        System.out.println("Department ID " + teamDTO.getDepartmentId());
+    public String updateTeam(@ModelAttribute TeamDTO teamDTO, RedirectAttributes redirectAttributes) {
+        System.out.println("Team Name: " + teamDTO.getName());
 
-        Integer dID = teamDTO.getDepartmentId();
+        if (teamDTO.getDepartment() == null || teamDTO.getDepartment().getId() == null) {
+            redirectAttributes.addFlashAttribute("error", "Invalid Department Selection");
+            return "redirect:/team_list";
+        }
+
+        System.out.println("Department ID: " + teamDTO.getDepartment().getId());
 
         Optional<TeamEntity> teamOptional = departmentAndTeamService.isDuplicateTeamNameOnUpdate(teamDTO);
 
         if (teamOptional.isPresent()) {
             redirectAttributes.addFlashAttribute("error", "Team Name Already Exists");
-            return "redirect:/team_list"; // Redirect to team list page with error
+            return "redirect:/team_list";
         }
 
-        System.out.println("This is Iddddddddddddddddddddddddddddd" + dID);
-        departmentAndTeamService.updateTeam(teamDTO, dID );
+        departmentAndTeamService.updateTeamService(teamDTO);
         redirectAttributes.addFlashAttribute("message", "Team updated successfully!");
-        return "redirect:/team_list"; // Redirect to team list page
+        return "redirect:/team_list";
     }
+
+
 
     @PostMapping("/departments/delete/{id}")
     public String deleteDepartment(@PathVariable Integer id, Model model, RedirectAttributes redirectAttributes) {

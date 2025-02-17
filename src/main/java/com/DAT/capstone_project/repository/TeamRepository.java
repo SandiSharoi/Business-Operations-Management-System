@@ -17,7 +17,7 @@ public interface TeamRepository extends JpaRepository<TeamEntity, Integer>{
     @SuppressWarnings("null")
     List<TeamEntity> findAll();  // Fetch all teams
 
-    List<TeamEntity> findByName(String name);
+//    List<TeamEntity> findByName(String name);
 
     List<TeamEntity> findAllByDepartment(DepartmentEntity department);
 
@@ -33,15 +33,14 @@ public interface TeamRepository extends JpaRepository<TeamEntity, Integer>{
 
 
     // Check if pm, dh, divh are null
-    boolean existsByDepartmentIdAndDhIsNotNull(Integer departmentId);
+//    boolean existsByDepartmentIdAndDhIsNotNull(Integer departmentId);
 
-    boolean existsByDepartmentIdAndDivhIsNotNull(Integer departmentId);
+//    boolean existsByDepartmentIdAndDivhIsNotNull(Integer departmentId);
 
-    boolean existsByIdAndPmIsNotNull(Integer teamId);
+//    boolean existsByIdAndPmIsNotNull(Integer teamId);
 
-    @Query(value = "select * from team where name = :name and department_id  = :departId", nativeQuery = true)
-    Optional<TeamEntity> findByNameAndDepartmentId(@Param("name") String name, @Param("departId") Integer departId);
+    @Query("SELECT t FROM TeamEntity t WHERE LOWER(t.name) = LOWER(:name) AND t.department.id = :departmentId")
+    Optional<TeamEntity> findByNameAndDepartmentId(@Param("name") String name, @Param("departmentId") Integer departmentId);
 
     boolean existsByDepartmentId(Integer departmentId);
-
 }

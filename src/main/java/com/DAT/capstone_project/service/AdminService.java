@@ -213,7 +213,7 @@ public class AdminService {
                 // Find all teams associated with the selected department and save dh_id
                 List<TeamEntity> teamsToUpdate = teamRepository.findByDepartmentId(department.getId());
                 for (TeamEntity team : teamsToUpdate) {
-                    team.setDh(user); // Assign user as DivH in each team
+                    team.setDh(user); // Assign user as Dh in each team
                 }
                 teamRepository.saveAll(teamsToUpdate); // Save updated teams
             }

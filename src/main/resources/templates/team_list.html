@@ -104,11 +104,11 @@
                 <div class="modal-body">
                     <form id="editTeamForm" th:action="@{/team_update}" method="post">
                         <input type="hidden" id="editTeamId" name="id">
-                        <label for="editDepartmentName" class="form-label">Department Name</label>
-                        <select class="form-select" id="deparmentId" name="deparmentId" required>
+                        <label for="editDepartmentId" class="form-label">Department Name</label>
+                        <select class="form-select" id="editDepartmentId" name="department.id" required>
                             <option value="" disabled>Select a department</option>
                             <option th:each="department : ${departments}" th:value="${department.id}"
-                                th:text="${department.name}"></option>
+                                    th:text="${department.name}"></option>
                         </select>
                         <div class="mb-3">
                             <label for="editTeamName" class="form-label">Team Name</label>
@@ -124,6 +124,7 @@
         </div>
     </div>
 
+
     <script>
         // Attach event listeners to all "Edit" buttons
         document.querySelectorAll('.btn-warning').forEach(button => {
@@ -136,9 +137,11 @@
                 // Populate the modal fields with the current team data
                 document.getElementById('editTeamId').value = teamId;
                 document.getElementById('editTeamName').value = teamName;
-                const departmentDropdown = document.getElementById('editDepartmentName');
+                const departmentDropdown = document.getElementById('editDepartmentId');
+
+                // Set correct department selection
                 Array.from(departmentDropdown.options).forEach(option => {
-                    if (option.textContent === departmentName) {
+                    if (option.textContent.trim() === departmentName.trim()) {
                         option.selected = true;
                     }
                 });
@@ -152,22 +155,15 @@
                 alert('Team ID is missing!');
                 return;
             }
-            const form = document.getElementById('editTeamForm');
-            form.submit();
-            // Close the modal after submission
-            const modal = new bootstrap.Modal(document.getElementById('editTeamModal'));
-            modal.hide();
+            document.getElementById('editTeamForm').submit();
         });
 
         // Handle form submission for the "Save" button in the add team form
         document.getElementById('saveTeamButton').addEventListener('click', function () {
-            const form = document.getElementById('teamForm');
-            form.submit();
-            // Close the modal after submission
-            const modal = new bootstrap.Modal(document.getElementById('addTeamModal'));
-            modal.hide();
+            document.getElementById('teamForm').submit();
         });
     </script>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
