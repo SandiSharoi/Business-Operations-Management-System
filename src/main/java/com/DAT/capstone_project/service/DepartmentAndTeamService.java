@@ -103,9 +103,9 @@ public class DepartmentAndTeamService {
         return modelMapper.map(teamEntity, TeamDTO.class);
     }
 
-    
+
     public Optional<TeamEntity> isDuplicateTeamNameOnUpdate(TeamDTO teamDTO) {
-        return teamRepository.findByNameAndDepartmentId(teamDTO.getName(), teamDTO.getDepartmentId());
+        return teamRepository.findByNameAndDepartmentId(teamDTO.getName(), teamDTO.getDepartment().getId());
     }
 
     public void updateTeam(TeamDTO teamDTO) {
@@ -116,34 +116,36 @@ public class DepartmentAndTeamService {
         TeamEntity existingTeam = teamRepository.findById(teamDTO.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
 
-        existingTeam.setName(teamDTO.getName()); 
-        DepartmentEntity  departmentEntity = new DepartmentEntity();
-        departmentEntity.setId(teamDTO.getDepartmentId());
-        existingTeam.setDepartment(departmentEntity);   
+        existingTeam.setName(teamDTO.getName());
+
+        DepartmentEntity departmentEntity = departmentRepository.findById(teamDTO.getDepartment().getId())
+                .orElseThrow(() -> new IllegalArgumentException("Department not found"));
+
+        existingTeam.setDepartment(departmentEntity);
 
         teamRepository.save(existingTeam);
-    }   
-    
-    public void updateTeam(TeamDTO teamDTO, Integer dID) {
+    }
+
+
+    public void updateTeamService(TeamDTO teamDTO) {
         if (teamDTO.getId() == null) {
             throw new IllegalArgumentException("Team ID must not be null");
         }
-    
-        // Fetch the existing team
+
         TeamEntity existingTeam = teamRepository.findById(teamDTO.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
-    
+
         existingTeam.setName(teamDTO.getName());
-    
-        // Fetch the existing DepartmentEntity from the database
-        // DepartmentEntity departmentEntity = departmentRepository.findById(teamDTO.getDepartment().getId())
-        DepartmentEntity departmentEntity = departmentRepository.findById(teamDTO.getDepartmentId())
-            .orElseThrow(() -> new IllegalArgumentException("Department not found"));
+
+        // Use teamDTO.getDepartment().getId() instead of departmentId
+        DepartmentEntity departmentEntity = departmentRepository.findById(teamDTO.getDepartment().getId())
+                .orElseThrow(() -> new IllegalArgumentException("Department not found"));
+
         existingTeam.setDepartment(departmentEntity);
-    
-        // Save the updated team
+
         teamRepository.save(existingTeam);
     }
+
 
     public void deleteDepartment(Integer id) {
         departmentRepository.deleteById(id); // Deletes the user with the given ID from the database

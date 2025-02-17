@@ -124,31 +124,32 @@
     </div>
 
 <script>
-        // Attach event listeners to all buttons that open the modal
-        document.querySelectorAll('.btn-warning').forEach(button => {
-            button.addEventListener('click', function () {
-                const departmentRow = this.closest('tr');
-                const departmentId = departmentRow.getAttribute('data-id'); // Fetch data-id attribute
-                const departmentName = departmentRow.querySelector('td:nth-child(2)').textContent;
+    // Attach event listeners to all buttons that open the modal
+document.querySelectorAll('.btn-warning').forEach(button => {
+button.addEventListener('click', function () {
+    const departmentRow = this.closest('tr');
+    const departmentId = departmentRow.getAttribute('data-id'); // Fetch data-id attribute
+    const departmentName = departmentRow.querySelector('td:nth-child(2)').textContent;
 
-                // Populate modal fields with the current department data
-                document.getElementById('editDepartmentId').value = departmentId;
-                document.getElementById('editDepartmentName').value = departmentName;
-            });
-        });
+    // Populate modal fields with the current department data
+    document.getElementById('editDepartmentId').value = departmentId;
+    document.getElementById('editDepartmentName').value = departmentName;
+});
+});
 
-        // Handle form submission when "Update" button is clicked
-        document.getElementById('updateDepartmentButton').addEventListener('click', function () {
-            // Ensure department ID is present
-            const departmentId = document.getElementById('editDepartmentId').value;
-            if (!departmentId) {
-                alert('Department ID is missing!');
-                return;
-            }
 
-            // Submit the form to update department details
-            document.getElementById('editDepartmentForm').submit();
-        });
+    // Handle form submission when "Update" button is clicked
+    document.getElementById('updateDepartmentButton').addEventListener('click', function () {
+        // Ensure department ID is present
+        const departmentId = document.getElementById('editDepartmentId').value;
+        if (!departmentId) {
+            alert('Department ID is missing!');
+            return;
+        }
+
+        // Submit the form to update department details
+        document.getElementById('editDepartmentForm').submit();
+    });
     </script>
 
     <!-- Bootstrap JS (Ensure this is placed at the end for efficient loading) -->

@@ -91,24 +91,29 @@ public class DepartmentAndTeamController {
 
 
     @PostMapping("/team_update")
-    public String updateTeam(@ModelAttribute TeamDTO teamDTO, Model model, RedirectAttributes redirectAttributes) {
-         System.out.println("Team Name " + teamDTO.getName());
-         System.out.println("Department ID " + teamDTO.getDepartmentId());
+    public String updateTeam(@ModelAttribute TeamDTO teamDTO, RedirectAttributes redirectAttributes) {
+        System.out.println("Team Name: " + teamDTO.getName());
 
-        Integer dID = teamDTO.getDepartmentId();
+        if (teamDTO.getDepartment() == null || teamDTO.getDepartment().getId() == null) {
+            redirectAttributes.addFlashAttribute("error", "Invalid Department Selection");
+            return "redirect:/team_list";
+        }
+
+        System.out.println("Department ID: " + teamDTO.getDepartment().getId());
 
         Optional<TeamEntity> teamOptional = departmentAndTeamService.isDuplicateTeamNameOnUpdate(teamDTO);
 
         if (teamOptional.isPresent()) {
             redirectAttributes.addFlashAttribute("error", "Team Name Already Exists");
-            return "redirect:/team_list"; // Redirect to team list page with error
+            return "redirect:/team_list";
         }
 
-        System.out.println("This is Iddddddddddddddddddddddddddddd" + dID);
-        departmentAndTeamService.updateTeam(teamDTO, dID );
+        departmentAndTeamService.updateTeamService(teamDTO);
         redirectAttributes.addFlashAttribute("message", "Team updated successfully!");
-        return "redirect:/team_list"; // Redirect to team list page
+        return "redirect:/team_list";
     }
+
+
 
     @PostMapping("/departments/delete/{id}")
     public String deleteDepartment(@PathVariable Integer id, Model model, RedirectAttributes redirectAttributes) {
