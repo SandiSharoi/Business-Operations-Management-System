@@ -60,7 +60,6 @@ public class AdminController {
         return "redirect:/";
     }
 
-
     @GetMapping("/user_registration")
     public String showRegistrationPage(Model model) {
         return adminService.showRegistrationPage(model);

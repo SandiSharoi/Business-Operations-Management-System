@@ -113,8 +113,6 @@ public class AdminService {
                 return "login";
         }
     }
-    
-    
 
     public String showRegistrationPage(Model model) {
         model.addAttribute("positions", positionRepository.findAll());
