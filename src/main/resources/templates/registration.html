@@ -68,7 +68,7 @@
             <div class="mb-3" id="departmentDiv">
                 <label for="department" class="form-label fw-bold">Department</label>
                 <select id="department" th:field="*{department.id}" class="form-select">
-                    <option value="" disabled selected>Select Department</option>
+                    <option value="" disabled th:selected="${department == null}">Select Department</option>
                     <option th:each="dep : ${departments}" th:value="${dep.id}" th:text="${dep.name}"></option>
                 </select>
             </div>
@@ -85,7 +85,7 @@
             <div class="mb-3" id="teamDiv">
                 <label for="team" class="form-label fw-bold">Team</label>
                 <select id="team" th:field="*{team.id}" class="form-select">
-                    <option value="" disabled selected>Select Team</option>
+                    <option value="" disabled th:selected="${team == null}">Select Team</option>
                     <option th:each="team : ${teams}"
                             th:value="${team.id}"
                             th:text="${team.name}"
@@ -100,7 +100,7 @@
             <div class="mb-3">
                 <label for="role" class="form-label fw-bold">Role</label>
                 <select id="role" th:field="*{role.id}" class="form-select" required>
-                    <option value="" disabled selected>Select Role</option>
+                    <option value="" disabled th:selected="${role == null}">Select Role</option>
                     <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"></option>
                 </select>
             </div>
@@ -146,35 +146,54 @@
         }
     }
 
+<!--     Ensure correct visibility on page load-->
+    function updateRoleOptions() {
+    var positionSelect = document.getElementById("position");
+    var selectedOption = positionSelect.options[positionSelect.selectedIndex];
+    var positionName = selectedOption.getAttribute("data-name"); // Get position name
 
-<!--Show Teams according to Department selected-->
+    var roleSelect = document.getElementById("role");
+    var roleOptions = roleSelect.querySelectorAll("option:not(:first-child)"); // Exclude "Select Role"
+
+    roleOptions.forEach(option => {
+        var roleName = option.textContent.trim(); // Get role name
+        if ((positionName === "Senior Developer" || positionName === "Junior Developer") && (roleName === "Approver")) {
+            option.hidden = true; // Hide Approver for developers
+        } else if (!(positionName === "Senior Developer" || positionName === "Junior Developer") && (roleName !== "Approver")) {
+            option.hidden = true; // Hide Admin/Employee for other positions
+        } else {
+            option.hidden = false; // Show valid roles
+        }
+    });
+
+    roleSelect.value = ""; // Reset selection
+}
+
+
+
+<!--Show Teams according to Department selected -->
 document.addEventListener("DOMContentLoaded", function () {
     toggleFields(); // Ensure correct visibility on page load
+    updateRoleOptions(); // Ensure correct roles are shown on page load
 
     var departmentSelect = document.getElementById("department");
     var teamSelect = document.getElementById("team");
 
-    // Create a "No Team Available" option
+    // Create "No Team Available" option
     var noTeamOption = document.createElement("option");
-    noTeamOption.value = ""; // No actual team ID is assigned.
+    noTeamOption.value = "";
     noTeamOption.textContent = "No team under this department";
-    noTeamOption.disabled = true; //Users cannot select this option.
-    noTeamOption.hidden = true; // Hidden by default
-
-    teamSelect.appendChild(noTeamOption); // Add it to the team select
+    noTeamOption.disabled = true;
+    noTeamOption.hidden = true;
+    teamSelect.appendChild(noTeamOption);
 
     departmentSelect.addEventListener("change", function () {
-        var selectedDepartmentId = this.value; //Getting the Selected Department ID
-
-        // Selects all team <option> elements, except the first one (which is "Select Team").
+        var selectedDepartmentId = this.value;
         var teamOptions = teamSelect.querySelectorAll("option:not(:first-child)");
 
-        let teamFound = false; // Flag to check if a team exists for the selected department
-
+        let teamFound = false;
         teamOptions.forEach(option => {
-            if (option.value === "") {
-                return; // Skip "Select Team" option
-            }
+            if (option.value === "") return;
             if (option.getAttribute("data-department-id") === selectedDepartmentId) {
                 option.hidden = false;
                 teamFound = true;
@@ -183,12 +202,14 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // Show "No team under this department" if no teams are found
         noTeamOption.hidden = teamFound;
-        teamSelect.value = ""; // Reset team selection
+        teamSelect.value = "";
     });
 
-    document.getElementById("position").addEventListener("change", toggleFields);
+    document.getElementById("position").addEventListener("change", function () {
+        toggleFields();
+        updateRoleOptions();
+    });
 });
 
 </script>

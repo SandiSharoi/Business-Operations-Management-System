@@ -65,6 +65,7 @@ public class AdminController {
         return adminService.showRegistrationPage(model);
     }
 
+
     @PostMapping("/submit_registration")
     public String registerUser(@ModelAttribute("user") UsersDTO usersDTO, Model model) {
         return adminService.registerUser(usersDTO, model);  // Pass DTO instead of entity
