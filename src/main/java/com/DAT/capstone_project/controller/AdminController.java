@@ -3,6 +3,7 @@ package com.DAT.capstone_project.controller;
 import java.util.List;
 import java.util.Map;
 
+import com.DAT.capstone_project.dto.DepartmentDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -48,9 +49,9 @@ public class AdminController {
 
     @PostMapping("/login")
     public String handleLogin(@RequestParam("email") String email,
-                            @RequestParam("password") String password,
-                            Model model,
-                            HttpSession session) {
+                              @RequestParam("password") String password,
+                              Model model,
+                              HttpSession session) {
         return adminService.authenticateAndRedirect(email, password, model, session);
     }
 
@@ -60,9 +61,16 @@ public class AdminController {
         return "redirect:/";
     }
 
+
     @GetMapping("/user_registration")
     public String showRegistrationPage(Model model) {
         return adminService.showRegistrationPage(model);
+    }
+
+    @GetMapping("/get_departments")
+    @ResponseBody
+    public List<DepartmentDTO> getDepartments(@RequestParam String position) {
+        return adminService.getDepartmentsForPosition(position);
     }
 
 
@@ -71,11 +79,11 @@ public class AdminController {
         return adminService.registerUser(usersDTO, model);  // Pass DTO instead of entity
     }
 
-    
+
     @GetMapping("/registration_list")
     public String showRegistrationListPage(Model model) {
         return adminService.showRegistrationListPage(model);
-    }    
+    }
 
 
     // User details View or Edit or Delete........................................................
@@ -116,19 +124,19 @@ public class AdminController {
     public String resetUserDetails(@PathVariable Long id, Model model) {
         // Fetch the original user details
         UsersDTO originalUser = adminService.getOriginalUserDetails(id);
-    
+
         // Add the user details to the model
         model.addAttribute("user", originalUser);
-    
+
         // Add isEditable flag to the model
         model.addAttribute("isEditable", false);
-    
-                // Positions, teams, departments, and roles are automatically handled in the service
-                model.addAttribute("positions", positionRepository.findAll());
-                model.addAttribute("teams", teamRepository.findAll());
-                model.addAttribute("departments", departmentRepository.findAll());
-                model.addAttribute("roles", roleRepository.findAll());
-        
+
+        // Positions, teams, departments, and roles are automatically handled in the service
+        model.addAttribute("positions", positionRepository.findAll());
+        model.addAttribute("teams", teamRepository.findAll());
+        model.addAttribute("departments", departmentRepository.findAll());
+        model.addAttribute("roles", roleRepository.findAll());
+
         // Redirect to the user detail page
         return "users_detail";
 
@@ -223,5 +231,5 @@ public class AdminController {
             model.addAttribute("message", "An error occurred while changing the password.");
             return "dashboard";
         }
-    }    
+    }
 }

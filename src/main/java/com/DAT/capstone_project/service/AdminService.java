@@ -1,5 +1,6 @@
 package com.DAT.capstone_project.service;
 
+import com.DAT.capstone_project.dto.DepartmentDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,7 +9,7 @@ import org.modelmapper.ModelMapper;
 
 import com.DAT.capstone_project.dto.ChangePasswordDTO;
 import com.DAT.capstone_project.dto.ChangePasswordResponse;
-import com.DAT.capstone_project.dto.UsersDTO;  
+import com.DAT.capstone_project.dto.UsersDTO;
 import com.DAT.capstone_project.model.UsersEntity;
 import com.DAT.capstone_project.model.PositionEntity;
 import com.DAT.capstone_project.model.TeamEntity;
@@ -55,7 +56,7 @@ public class AdminService {
     private ModelMapper modelMapper;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;    
+    private PasswordEncoder passwordEncoder;
 
     // --- Authentication and Registration ---
     public Optional<UsersEntity> authenticate(String email, String password) {
@@ -90,7 +91,7 @@ public class AdminService {
             return "login";
         }
     }
-    
+
 
     public String redirectBasedOnRole(String roleName, String position, Model model) {
         switch (roleName.toUpperCase()) {
@@ -114,6 +115,7 @@ public class AdminService {
         }
     }
 
+
     public String showRegistrationPage(Model model) {
         model.addAttribute("positions", positionRepository.findAll());
         model.addAttribute("teams", teamRepository.findAll());
@@ -123,9 +125,23 @@ public class AdminService {
         return "registration";
     }
 
+    // New method to get departments where pm_id is NULL
+    public List<DepartmentDTO> getDepartmentsForPosition(String position) {
+        if ("Project Manager".equalsIgnoreCase(position)) {
+            List<Integer> departmentIds = teamRepository.findDepartmentIdsWherePmIsNull();
+            return departmentRepository.findByIdIn(departmentIds).stream()
+                    .map(dept -> new DepartmentDTO(dept.getId(), dept.getName()))
+                    .collect(Collectors.toList());
+        }
+        return departmentRepository.findAll().stream()
+                .map(dept -> new DepartmentDTO(dept.getId(), dept.getName()))
+                .collect(Collectors.toList());
+    }
+
+
     @Transactional
     public String registerUser(UsersDTO usersDTO, Model model) {
-        
+
         try {
             // Check if email already exists
             if (usersRepository.existsByEmail(usersDTO.getEmail())) {
@@ -136,11 +152,11 @@ public class AdminService {
                 model.addAttribute("roles", roleRepository.findAll());
                 return "registration"; // Return to registration page with error
             }
-    
+
             // Fetch position
             PositionEntity position = positionRepository.findById(usersDTO.getPosition().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Invalid Position ID"));
-    
+
             String user_position_name = position.getName();
 
             // Map DTO to Entity
@@ -148,7 +164,7 @@ public class AdminService {
             user.setPosition(position);
             user.setRole(roleRepository.findById(usersDTO.getRole().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Invalid Role ID")));
-    
+
 
             // Check if the position is already assigned for the selected team or department...........................
             if (user_position_name.equalsIgnoreCase("Project Manager")) {
@@ -162,8 +178,8 @@ public class AdminService {
                     model.addAttribute("roles", roleRepository.findAll());
                     return "registration"; // Return to registration page with error
                 }
-            } 
-            
+            }
+
             else if (user_position_name.equalsIgnoreCase("Department Head")) {
                 DepartmentEntity department = departmentRepository.findById(usersDTO.getDepartment().getId())
                         .orElseThrow(() -> new IllegalArgumentException("Invalid Department ID"));
@@ -179,7 +195,7 @@ public class AdminService {
                     }
                 }
             }
-            
+
             else if (user_position_name.equalsIgnoreCase("Division Head")) {
                 List<Integer> departmentIds = usersDTO.getDepartmentIds();
                 if (departmentIds == null || departmentIds.isEmpty()) {
@@ -204,7 +220,7 @@ public class AdminService {
                         .orElseThrow(() -> new IllegalArgumentException("Invalid Department ID"));
 
 
-                    
+
                 user.setDepartment(department);
                 user.setTeam(null); // Ensure team_id is NULL
 
@@ -220,16 +236,16 @@ public class AdminService {
             else if (user_position_name.equalsIgnoreCase("Division Head")) {
                 user.setTeam(null);  // Ensure team_id is NULL
                 user.setDepartment(null);  // Ensure department_id is NULL
-    
+
                 // Fetch multiple departments selected for DivH
                 List<Integer> departmentIds = usersDTO.getDepartmentIds();
                 if (departmentIds == null || departmentIds.isEmpty()) {
                     throw new IllegalArgumentException("At least one department must be selected for DivH.");
                 }
-    
+
                 // Save user first before updating teams (prevents TransientObjectException)
                 user = usersRepository.save(user);
-    
+
                 // Find all teams associated with the selected departments and save divh_id
                 List<TeamEntity> teamsToUpdate = teamRepository.findByDepartmentIdIn(departmentIds);
                 for (TeamEntity team : teamsToUpdate) {
@@ -247,7 +263,7 @@ public class AdminService {
                 user.setTeam(team);
                 user.setDepartment(department);
 
-                if (user_position_name.equalsIgnoreCase("PM")) {                  
+                if (user_position_name.equalsIgnoreCase("PM")) {
 
                     // Fetch all teams associated with the specified team ID and department ID
                     List<TeamEntity> teamsToUpdate = teamRepository.findByIdAndDepartmentId(team.getId(), department.getId());
@@ -257,12 +273,12 @@ public class AdminService {
                     teamRepository.saveAll(teamsToUpdate); // Save updated teams
                 }
             }
-    
+
             // Save user (if not DivH, as it's already saved earlier)
             if (!user_position_name.equalsIgnoreCase("Division Head")) {
                 usersRepository.save(user);
             }
-    
+
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("positions", positionRepository.findAll());
@@ -271,36 +287,36 @@ public class AdminService {
             model.addAttribute("roles", roleRepository.findAll());
             return "registration"; // Return to registration page with error
         }
-    
+
         return "registration_success";
     }
-    
+
     public String showRegistrationListPage(Model model) {
         List<UsersEntity> userEntities = usersRepository.findAllByOrderByIdAsc();
         List<UsersDTO> users = userEntities.stream()
-            .map(entity -> modelMapper.map(entity, UsersDTO.class))
-            .collect(Collectors.toList());
+                .map(entity -> modelMapper.map(entity, UsersDTO.class))
+                .collect(Collectors.toList());
         model.addAttribute("users", users);
         return "registration_list"; // This should match your Thymeleaf template name
     }
-    
+
     // --- UsersService methods merged here ---
     public List<UsersDTO> getAllUsers() {
         return usersRepository.findAll()
-                             .stream()
-                             .map(user -> modelMapper.map(user, UsersDTO.class))
-                             .toList();
+                .stream()
+                .map(user -> modelMapper.map(user, UsersDTO.class))
+                .toList();
     }
 
     public UsersDTO getUserById(Long id) {
         UsersEntity user = usersRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
         return modelMapper.map(user, UsersDTO.class);
     }
 
     public void updateUser(UsersDTO userDTO) {
         UsersEntity userEntity = usersRepository.findById(userDTO.getId())
-            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         userEntity.setName(userDTO.getName());
         userEntity.setEmail(userDTO.getEmail());
@@ -308,25 +324,25 @@ public class AdminService {
 
         if (userDTO.getDepartment() != null && userDTO.getDepartment().getId() != null) {
             DepartmentEntity department = departmentRepository.findById(userDTO.getDepartment().getId())
-                .orElseThrow(() -> new IllegalArgumentException("Department not found"));
+                    .orElseThrow(() -> new IllegalArgumentException("Department not found"));
             userEntity.setDepartment(department);
         }
 
         if (userDTO.getPosition() != null && userDTO.getPosition().getId() != null) {
             PositionEntity position = positionRepository.findById(userDTO.getPosition().getId())
-                .orElseThrow(() -> new IllegalArgumentException("Position not found"));
+                    .orElseThrow(() -> new IllegalArgumentException("Position not found"));
             userEntity.setPosition(position);
         }
 
         if (userDTO.getTeam() != null && userDTO.getTeam().getId() != null) {
             TeamEntity team = teamRepository.findById(userDTO.getTeam().getId())
-                .orElseThrow(() -> new IllegalArgumentException("Team not found"));
+                    .orElseThrow(() -> new IllegalArgumentException("Team not found"));
             userEntity.setTeam(team);
         }
 
         if (userDTO.getRole() != null && userDTO.getRole().getId() != null) {
             RoleEntity role = roleRepository.findById(userDTO.getRole().getId())
-                .orElseThrow(() -> new IllegalArgumentException("Role not found"));
+                    .orElseThrow(() -> new IllegalArgumentException("Role not found"));
             userEntity.setRole(role);
         }
 
@@ -356,7 +372,7 @@ public class AdminService {
     public void deleteUser(Long id) {
         // Fetch all the teams where the user is referenced as PM, DH, or DivH
         List<TeamEntity> teams = teamRepository.findAll();
-        
+
         for (TeamEntity team : teams) {
             if (team.getPm() != null && team.getPm().getId().equals(id)) {
                 team.setPm(null);  // Remove the PM reference
@@ -368,18 +384,18 @@ public class AdminService {
                 team.setDivh(null);  // Remove the DivH reference
             }
         }
-    
+
         // After updating the references, save the changes
         teamRepository.saveAll(teams);
-        
+
         // Now, delete the user from the users table
         usersRepository.deleteById(id);  // Deletes the user with the given ID
     }
-    
-    
+
+
     public UsersDTO getOriginalUserDetails(Long id) {
         UsersEntity userEntity = usersRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
         return modelMapper.map(userEntity, UsersDTO.class);
     }
 
@@ -442,5 +458,5 @@ public class AdminService {
         session.setAttribute("loggedInUser", user);
 
         return new ChangePasswordResponse(true, "Password changed successfully.");
-    }    
+    }
 }
