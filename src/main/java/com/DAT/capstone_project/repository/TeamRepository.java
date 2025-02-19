@@ -54,5 +54,4 @@ public interface TeamRepository extends JpaRepository<TeamEntity, Integer>{
     @Query("SELECT DISTINCT t.department.id FROM TeamEntity t WHERE t.divh.id IS NULL")
     List<Integer> findDepartmentIdsWhereDivhIsNull();
 
-
 }
