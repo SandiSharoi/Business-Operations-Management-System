@@ -44,13 +44,18 @@ public interface TeamRepository extends JpaRepository<TeamEntity, Integer>{
 
     boolean existsByDepartmentId(Integer departmentId);
 
-//    this is new..............................................................................
+//    Find unique department IDs where specific Approver Roles are unassigned...............................................................................
+    //DISTINCT ensures no duplicate department IDs
+
+    //Get Departments where no Project Manager (pm.id IS NULL).
     @Query("SELECT DISTINCT t.department.id FROM TeamEntity t WHERE t.pm.id IS NULL")
     List<Integer> findDepartmentIdsWherePmIsNull();
 
+    //Departments where no Department Head (dh.id IS NULL)
     @Query("SELECT DISTINCT t.department.id FROM TeamEntity t WHERE t.dh.id IS NULL")
     List<Integer> findDepartmentIdsWhereDhIsNull();
 
+    //Departments where no Division Head (divh.id IS NULL)
     @Query("SELECT DISTINCT t.department.id FROM TeamEntity t WHERE t.divh.id IS NULL")
     List<Integer> findDepartmentIdsWhereDivhIsNull();
 
