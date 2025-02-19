@@ -48,4 +48,11 @@ public interface TeamRepository extends JpaRepository<TeamEntity, Integer>{
     @Query("SELECT DISTINCT t.department.id FROM TeamEntity t WHERE t.pm.id IS NULL")
     List<Integer> findDepartmentIdsWherePmIsNull();
 
+    @Query("SELECT DISTINCT t.department.id FROM TeamEntity t WHERE t.dh.id IS NULL")
+    List<Integer> findDepartmentIdsWhereDhIsNull();
+
+    @Query("SELECT DISTINCT t.department.id FROM TeamEntity t WHERE t.divh.id IS NULL")
+    List<Integer> findDepartmentIdsWhereDivhIsNull();
+
+
 }

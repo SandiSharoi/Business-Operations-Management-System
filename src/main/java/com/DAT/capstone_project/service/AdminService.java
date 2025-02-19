@@ -23,11 +23,7 @@ import com.DAT.capstone_project.repository.RoleRepository;
 
 import jakarta.servlet.http.HttpSession;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -127,16 +123,25 @@ public class AdminService {
 
     // New method to get departments where pm_id is NULL
     public List<DepartmentDTO> getDepartmentsForPosition(String position) {
+        List<Integer> departmentIds = new ArrayList<>();
+
         if ("Project Manager".equalsIgnoreCase(position)) {
-            List<Integer> departmentIds = teamRepository.findDepartmentIdsWherePmIsNull();
+            departmentIds = teamRepository.findDepartmentIdsWherePmIsNull();
+        } else if ("Department Head".equalsIgnoreCase(position)) {
+            departmentIds = teamRepository.findDepartmentIdsWhereDhIsNull();
+        } else if ("Division Head".equalsIgnoreCase(position)) {
+            departmentIds = teamRepository.findDepartmentIdsWhereDivhIsNull();
+        }
+
+        if (!departmentIds.isEmpty()) {
             return departmentRepository.findByIdIn(departmentIds).stream()
                     .map(dept -> new DepartmentDTO(dept.getId(), dept.getName()))
                     .collect(Collectors.toList());
         }
-        return departmentRepository.findAll().stream()
-                .map(dept -> new DepartmentDTO(dept.getId(), dept.getName()))
-                .collect(Collectors.toList());
+
+        return Collections.emptyList(); // Ensures empty list if no valid departments
     }
+
 
 
     @Transactional
