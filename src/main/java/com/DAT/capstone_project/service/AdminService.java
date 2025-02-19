@@ -111,25 +111,35 @@ public class AdminService {
         }
     }
 
-
+//Show User Registration Page.........................................................................
     public String showRegistrationPage(Model model) {
         model.addAttribute("positions", positionRepository.findAll());
         model.addAttribute("teams", teamRepository.findAll());
         model.addAttribute("departments", departmentRepository.findAll());
         model.addAttribute("roles", roleRepository.findAll());
-        model.addAttribute("user", new UsersDTO());
+        model.addAttribute("user", new UsersDTO()); //Creates a new UsersDTO object for form binding.
+
         return "registration";
     }
 
-    // New method to get departments where pm_id is NULL
+    //Show Departments which has pm_id = null or dh_id = null or divh_id = null according to Approver Position Registration...........................................
     public List<DepartmentDTO> getDepartmentsForPosition(String position) {
-        List<Integer> departmentIds = new ArrayList<>();
+        List<Integer> departmentIds = new ArrayList<>(); //Initializes an empty departmentIds list
 
+//      Determines which departments to fetch based on position
+
+        //If Project Manager, fetch departments where pm_id is NULL
         if ("Project Manager".equalsIgnoreCase(position)) {
             departmentIds = teamRepository.findDepartmentIdsWherePmIsNull();
-        } else if ("Department Head".equalsIgnoreCase(position)) {
+        }
+
+        //If Department Head, fetch departments where dh_id is NULL
+        else if ("Department Head".equalsIgnoreCase(position)) {
             departmentIds = teamRepository.findDepartmentIdsWhereDhIsNull();
-        } else if ("Division Head".equalsIgnoreCase(position)) {
+        }
+
+        //If Division Head, fetch departments where divh_id is NULL
+        else if ("Division Head".equalsIgnoreCase(position)) {
             departmentIds = teamRepository.findDepartmentIdsWhereDivhIsNull();
         }
 
@@ -137,11 +147,14 @@ public class AdminService {
             departmentIds = teamRepository.findDepartmentIdsWherePmIsNull();
         }
         if (!departmentIds.isEmpty()) {
+
+            //Converts departmentIds into a list of DepartmentDTO objects using stream().map()
             return departmentRepository.findByIdIn(departmentIds).stream()
                     .map(dept -> new DepartmentDTO(dept.getId(), dept.getName()))
                     .collect(Collectors.toList());
         }
 
+        //Returns the list or an empty list if no departments match
         return Collections.emptyList(); // Ensures empty list if no valid departments
     }
 
@@ -173,54 +186,6 @@ public class AdminService {
             user.setRole(roleRepository.findById(usersDTO.getRole().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Invalid Role ID")));
 
-
-            // Check if the position is already assigned for the selected team or department...........................
-            if (user_position_name.equalsIgnoreCase("Project Manager")) {
-                TeamEntity team = teamRepository.findById(usersDTO.getTeam().getId())
-                        .orElseThrow(() -> new IllegalArgumentException("Invalid Team ID"));
-                if (team.getPm() != null) {
-                    model.addAttribute("error", "A Project Manager (PM) has already been assigned to this team.");
-                    model.addAttribute("positions", positionRepository.findAll());
-                    model.addAttribute("teams", teamRepository.findAll());
-                    model.addAttribute("departments", departmentRepository.findAll());
-                    model.addAttribute("roles", roleRepository.findAll());
-                    return "registration"; // Return to registration page with error
-                }
-            }
-
-            else if (user_position_name.equalsIgnoreCase("Department Head")) {
-                DepartmentEntity department = departmentRepository.findById(usersDTO.getDepartment().getId())
-                        .orElseThrow(() -> new IllegalArgumentException("Invalid Department ID"));
-                List<TeamEntity> teams = teamRepository.findByDepartmentId(department.getId());
-                for (TeamEntity team : teams) {
-                    if (team.getDh() != null) {
-                        model.addAttribute("error", "A Department Head (DH) has already been assigned to this department.");
-                        model.addAttribute("positions", positionRepository.findAll());
-                        model.addAttribute("teams", teamRepository.findAll());
-                        model.addAttribute("departments", departmentRepository.findAll());
-                        model.addAttribute("roles", roleRepository.findAll());
-                        return "registration"; // Return to registration page with error
-                    }
-                }
-            }
-
-            else if (user_position_name.equalsIgnoreCase("Division Head")) {
-                List<Integer> departmentIds = usersDTO.getDepartmentIds();
-                if (departmentIds == null || departmentIds.isEmpty()) {
-                    throw new IllegalArgumentException("At least one department must be selected for DivH.");
-                }
-                List<TeamEntity> teams = teamRepository.findByDepartmentIdIn(departmentIds);
-                for (TeamEntity team : teams) {
-                    if (team.getDivh() != null) {
-                        model.addAttribute("error", "A Division Head (DivH) has already been assigned to one or more of the selected departments.");
-                        model.addAttribute("positions", positionRepository.findAll());
-                        model.addAttribute("teams", teamRepository.findAll());
-                        model.addAttribute("departments", departmentRepository.findAll());
-                        model.addAttribute("roles", roleRepository.findAll());
-                        return "registration"; // Return to registration page with error
-                    }
-                }
-            }
 
             // Case 1: DH → Only department should be saved, team should be NULL
             if ( user_position_name.equalsIgnoreCase("Department Head")) {
@@ -271,7 +236,7 @@ public class AdminService {
                 user.setTeam(team);
                 user.setDepartment(department);
 
-                if (user_position_name.equalsIgnoreCase("PM")) {
+                if (user_position_name.equalsIgnoreCase("Project Manager")) {
 
                     // Fetch all teams associated with the specified team ID and department ID
                     List<TeamEntity> teamsToUpdate = teamRepository.findByIdAndDepartmentId(team.getId(), department.getId());
