@@ -62,6 +62,8 @@
             <!-- Position Selection -->
             <div class="mb-3">
                 <label for="position" class="form-label fw-bold">Position</label>
+
+<!--            onchange="toggleFields()" triggers JavaScript when selection changes-->
                 <select id="position" th:field="*{position.id}" class="form-select" required onchange="toggleFields()">
                     <option value="" disabled selected>Select Position</option>
                     <option th:each="pos : ${positions}" th:value="${pos.id}" th:text="${pos.name}"
@@ -70,6 +72,7 @@
             </div>
 
             <!-- Single Department Selection (For PM, DH, and Other Positions) -->
+            <!--Initially populated with all departments.-->
             <div class="mb-3" id="departmentDiv">
                 <label for="department" class="form-label fw-bold">Department</label>
                 <select id="department" th:field="*{department.id}" class="form-select">
@@ -126,7 +129,7 @@
 </body>
 
 <script>
-    <!--Show Team, Department, Multi Departments according to position-->
+    <!--Show Team, Department, Multi Departments fields according to position-->
         function toggleFields() {
             var positionSelect = document.getElementById("position");
             var selectedOption = positionSelect.options[positionSelect.selectedIndex];
@@ -151,7 +154,7 @@
             }
         }
 
-    <!--     Ensure correct visibility on page load-->
+    <!-- Show Role's Values According to Position-->
         function updateRoleOptions() {
         var positionSelect = document.getElementById("position");
         var selectedOption = positionSelect.options[positionSelect.selectedIndex];
@@ -218,27 +221,49 @@
     });
 
 
-document.getElementById("position").addEventListener("change", function() {
-    let position = this.options[this.selectedIndex].getAttribute("data-name");
+    //Show Dynamic Departments which has pm_id = null or dh_id = null or divh_id = null according to Approver Position Registration...........................................
+    //Changes are handled dynamically via AJAX.
+    //Listens for changes in the position dropdown.
+    document.getElementById("position").addEventListener("change", function() {
+        let position = this.options[this.selectedIndex].getAttribute("data-name");
 
-    fetch(`/get_departments?position=` + encodeURIComponent(position))
-        .then(response => response.json())
-        .then(data => {
-            let departmentDropdown = document.getElementById("department");
-            departmentDropdown.innerHTML = `<option value="" disabled selected>Select Department</option>`;
+        // Sends an AJAX request to /get_departments with the selected position and Fetch departments based on the selected position
+        fetch(`/get_departments?position=` + encodeURIComponent(position))
+            .then(response => response.json())
+            .then(data => {
+                console.log("Received data:", data);
 
-            data.forEach(dep => {
-                let option = document.createElement("option");
-                option.value = dep.id;
-                option.textContent = dep.name;
-                departmentDropdown.appendChild(option);
+                // Populate the appropriate department dropdown based on the position
+                // If Division Head, updates the multi-department dropdown.
+                // Otherwise, updates the single department dropdown.
+
+                if (position === "Division Head") {
+                    let multiDepartmentDropdown = document.getElementById("multiDepartment");
+                    multiDepartmentDropdown.innerHTML = `<option value="" disabled selected>Select Multiple Departments</option>`;
+
+                    // Populate multi-department dropdown with the filtered departments
+                    data.forEach(dep => {
+                        let option = document.createElement("option");
+                        option.value = dep.id;
+                        option.textContent = dep.name;
+                        multiDepartmentDropdown.appendChild(option);
+                    });
+                } else {
+                    let departmentDropdown = document.getElementById("department");
+                    departmentDropdown.innerHTML = `<option value="" disabled selected>Select Department</option>`;
+
+                    // Populate single department dropdown with the filtered departments
+                    data.forEach(dep => {
+                        let option = document.createElement("option");
+                        option.value = dep.id;
+                        option.textContent = dep.name;
+                        departmentDropdown.appendChild(option);
+                    });
+                }
             });
-        });
-});
-
+    });
 
 
 </script>
-
 
 </html>

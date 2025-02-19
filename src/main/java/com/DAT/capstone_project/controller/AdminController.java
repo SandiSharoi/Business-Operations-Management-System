@@ -61,15 +61,19 @@ public class AdminController {
         return "redirect:/";
     }
 
-
+//Show User Registration Page.........................................................................
     @GetMapping("/user_registration")
     public String showRegistrationPage(Model model) {
         return adminService.showRegistrationPage(model);
     }
 
+
+//Show Departments which has pm_id = null or dh_id = null or divh_id = null according to Approver Position Registration...........................................
+//    Handles AJAX request (fetch in JavaScript) to /get_departments
     @GetMapping("/get_departments")
     @ResponseBody
     public List<DepartmentDTO> getDepartments(@RequestParam String position) {
+        //Returns a list of departments as JSON for dynamic population in the frontend.
         return adminService.getDepartmentsForPosition(position);
     }
 

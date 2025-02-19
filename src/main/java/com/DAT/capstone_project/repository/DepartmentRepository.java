@@ -21,6 +21,7 @@ public interface DepartmentRepository extends JpaRepository<DepartmentEntity, In
 
     boolean existsByNameIgnoreCaseAndIdNot(String name, Integer id);
 
+    //Finds departments matching the given list of IDs by returning a list of DepartmentEntity objects
     @Query("SELECT d FROM DepartmentEntity d WHERE d.id IN :ids")
     List<DepartmentEntity> findByIdIn(@Param("ids") List<Integer> ids);
 
