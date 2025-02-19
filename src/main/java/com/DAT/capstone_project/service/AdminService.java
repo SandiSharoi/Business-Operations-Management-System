@@ -133,6 +133,9 @@ public class AdminService {
             departmentIds = teamRepository.findDepartmentIdsWhereDivhIsNull();
         }
 
+        else{
+            departmentIds = teamRepository.findDepartmentIdsWherePmIsNull();
+        }
         if (!departmentIds.isEmpty()) {
             return departmentRepository.findByIdIn(departmentIds).stream()
                     .map(dept -> new DepartmentDTO(dept.getId(), dept.getName()))
