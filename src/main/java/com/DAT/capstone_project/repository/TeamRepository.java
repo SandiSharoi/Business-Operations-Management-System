@@ -13,7 +13,7 @@ import com.DAT.capstone_project.model.TeamEntity;
 
 @Repository
 public interface TeamRepository extends JpaRepository<TeamEntity, Integer>{
-    
+
     @SuppressWarnings("null")
     List<TeamEntity> findAll();  // Fetch all teams
 
@@ -43,4 +43,16 @@ public interface TeamRepository extends JpaRepository<TeamEntity, Integer>{
     Optional<TeamEntity> findByNameAndDepartmentId(@Param("name") String name, @Param("departmentId") Integer departmentId);
 
     boolean existsByDepartmentId(Integer departmentId);
+
+//    this is new..............................................................................
+    @Query("SELECT DISTINCT t.department.id FROM TeamEntity t WHERE t.pm.id IS NULL")
+    List<Integer> findDepartmentIdsWherePmIsNull();
+
+    @Query("SELECT DISTINCT t.department.id FROM TeamEntity t WHERE t.dh.id IS NULL")
+    List<Integer> findDepartmentIdsWhereDhIsNull();
+
+    @Query("SELECT DISTINCT t.department.id FROM TeamEntity t WHERE t.divh.id IS NULL")
+    List<Integer> findDepartmentIdsWhereDivhIsNull();
+
+
 }
