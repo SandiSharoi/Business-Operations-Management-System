@@ -4,9 +4,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.DAT.capstone_project.dto.DepartmentDTO;
+import com.DAT.capstone_project.model.UsersEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import com.DAT.capstone_project.dto.ChangePasswordDTO;
@@ -108,9 +110,22 @@ public class AdminController {
     }
 
     @PostMapping("/user/{id}")
-    public String updateUser(@PathVariable Long id, @ModelAttribute("user") UsersDTO userDTO) {
+    public String updateUser(@PathVariable Long id, @ModelAttribute("user") UsersDTO userDTO, Model model) {
+        // Check if the email already exists (excluding the current user)
+        if (adminService.isEmailTaken(  userDTO.getEmail(), id)) {
+            model.addAttribute("emailError", "This email is already in use. Please use a different email.");
+
+            // Get user details + dropdown lists
+            Map<String, Object> data = adminService.getUserDetailsOrEdit(id, true);
+            model.addAllAttributes(data);
+
+            model.addAttribute("user", userDTO);  // Add user DTO back to the model
+            return "users_detail";  // Return to the same page
+        }
+
+        // Proceed with updating the user
         adminService.updateUser(userDTO);
-        return "registration_list_success";
+        return "registration_list_success";  // Redirect to the success page
     }
 
     @PostMapping("/user/delete/{id}")
@@ -146,7 +161,7 @@ public class AdminController {
 
     }
 
-    // Searh employee in registration list by name or id...................................................
+    // Search employee in registration list by name or id...................................................
     @GetMapping("/search")
     public String searchUsers(@RequestParam(required = false) String idQuery,
                               @RequestParam(required = false) String nameQuery,
@@ -161,79 +176,65 @@ public class AdminController {
     @GetMapping("/dashboard")
     public String dashboard(Model model, HttpSession session) {
         UsersDTO user = (UsersDTO) session.getAttribute("loggedInUser");
-        model.addAttribute("user", user);
-        return "dashboard";
+
+        // Ensure the user object is not null and has valid role and position
+        if (user != null) {
+            String roleName = String.valueOf(user.getRole());
+            String position = String.valueOf(user.getPosition());
+
+            // Call the method to determine the menu based on the role and position
+            return adminService.redirectBasedOnRole(roleName, position, model);
+        }
+
+        // If no user is found, redirect to login page
+        return "login";
     }
 
-    @PostMapping("/user/{id}/change-password")
-    public String changePassword(
-            @PathVariable("id") Long userId,
-            @Valid @RequestParam("oldPassword") String oldPassword,
-            @Valid @RequestParam("newPassword") String newPassword,
-            @Valid @RequestParam("confirmPassword") String confirmPassword,
-            HttpSession session,
-            HttpServletRequest request,
-            Model model) {
+    @PostMapping("user/{id}/change-password")
+    public String changePassword(@PathVariable("id") Long userId,
+                                 @RequestParam("oldPassword") String oldPassword,
+                                 @RequestParam("newPassword") String newPassword,
+                                 @RequestParam("confirmPassword") String confirmPassword,
+                                 HttpSession session,
+                                 Model model) {
 
-        // Get the userId from the session
-        Long sessionUserId = (Long) session.getAttribute("userId");
+        // Validate passwords
+        String errorMessage = adminService.validatePasswordChange(userId, oldPassword, newPassword, confirmPassword);
 
-        // Check if the session user ID is null (user not logged in)
-        if (sessionUserId == null) {
-            model.addAttribute("message", "User not logged in.");
-            return "dashboard"; // Redirect to dashboard if not logged in
-        }
+        if (errorMessage != null) {
+            model.addAttribute("error", errorMessage);
+            UsersEntity loggedInUser = (UsersEntity) session.getAttribute("loggedInUser");
 
-        // Check if the session user ID matches the user ID from the request
-        if (!sessionUserId.equals(userId)) {
-            model.addAttribute("message", "User ID mismatch. You can only change your own password.");
-            return "dashboard";
-        }
+            String roleName = loggedInUser.getRole().getName();
+            String positionName = loggedInUser.getPosition().getName();
 
-        // Validate the new password and confirm password
-        if (!newPassword.equals(confirmPassword)) {
-            model.addAttribute("message", "New password and confirm password do not match.");
-            return "dashboard";
-        }
+            // Redirect based on role and position
+            return adminService.redirectBasedOnRole(roleName, positionName , model);        }
 
-        // Password format validation
-        if (newPassword.length() < 8) { // Example: Password must be at least 8 characters long
-            model.addAttribute("message", "New password is too short. Minimum 8 characters required.");
-            return "dashboard";
-        }
+        // Change password
+        boolean isPasswordChanged = adminService.changePassword(userId, newPassword);
 
-        // Password strength validation
-        if (!newPassword.matches(".*[A-Z].*") || !newPassword.matches(".*[0-9].*") || !newPassword.matches(".*[!@#$%^&*()].*")) {
-            model.addAttribute("message", "New password must contain at least one uppercase letter, one number, and one special character.");
-            return "dashboard";
-        }
+        if (isPasswordChanged) {
 
-        // Create DTO to hold the passwords
-        ChangePasswordDTO changePasswordDTO = new ChangePasswordDTO();
-        changePasswordDTO.setOldPassword(oldPassword);
-        changePasswordDTO.setNewPassword(newPassword);
-        changePasswordDTO.setConfirmPassword(confirmPassword);
+            model.addAttribute("message", "Password changed successfully!");
 
-        try {
-            ChangePasswordResponse response = adminService.changePassword(userId, changePasswordDTO, session);
+            UsersEntity loggedInUser = (UsersEntity) session.getAttribute("loggedInUser");
 
-            // Check if the password change was successful
-            if (response.isSuccess()) {
-                session.invalidate();
+            String roleName = loggedInUser.getRole().getName();
+            String positionName = loggedInUser.getPosition().getName();
 
-                session = request.getSession(true);
+            // Redirect based on role and position
+            return adminService.redirectBasedOnRole(roleName, positionName , model);
 
-                model.addAttribute("message", "Password changed successfully. Please log in again.");
+        } else {
+            model.addAttribute("error", errorMessage);
+            UsersEntity loggedInUser = (UsersEntity) session.getAttribute("loggedInUser");
 
-                // Redirect to the login page after successful change
-                return "redirect:/";
-            } else {
-                model.addAttribute("message", response.getMessage());
-                return "dashboard";
-            }
-        } catch (Exception e) {
-            model.addAttribute("message", "An error occurred while changing the password.");
-            return "dashboard";
+            String roleName = loggedInUser.getRole().getName();
+            String positionName = loggedInUser.getPosition().getName();
+
+            // Redirect based on role and position
+            return adminService.redirectBasedOnRole(roleName, positionName, model);
         }
     }
 }

@@ -221,4 +221,39 @@ public class ApproverService {
         return lowerIndex < currentIndex;
     }
 
+    @Transactional
+    public List<FormApplyDTO> getPastDecisionsForApprover(Long approverId) {
+        // Fetch forms that this approver has approved or rejected
+        List<AssignApproverEntity> pastForms = assignApproverRepository.findByApproverId(approverId)
+                .stream()
+                .filter(assignApprover -> !"Pending".equalsIgnoreCase(assignApprover.getFormStatus()))
+                .collect(Collectors.toList());
+
+        // Filter out forms where a lower approver has rejected the form
+        List<FormApplyDTO> filteredForms = pastForms.stream()
+                .filter(assignApprover -> {
+                    FormApplyEntity formApply = assignApprover.getFormApply();
+                    List<AssignApproverEntity> approvers = assignApproverRepository.findByFormApply_FormApplyId(formApply.getFormApplyId());
+
+                    // Check if any lower approver rejected the form
+                    boolean anyLowerApproverRejected = approvers.stream()
+                            .filter(a -> isLowerPosition(a.getApproverPosition(), assignApprover.getApproverPosition()))
+                            .anyMatch(a -> "Reject".equalsIgnoreCase(a.getFormStatus()));
+
+                    return !anyLowerApproverRejected;
+                })
+                .map(assignApprover -> {
+                    FormApplyDTO formDTO = new FormApplyDTO();
+                    formDTO.setFormApplyId(assignApprover.getFormApply().getFormApplyId());
+                    formDTO.setTask(assignApprover.getFormApply().getTask());
+                    formDTO.setAppliedDate(assignApprover.getFormApply().getAppliedDate());
+                    formDTO.setFormStatus(assignApprover.getFormStatus()); // Include status
+                    UsersDTO employeeDTO = modelMapper.map(assignApprover.getFormApply().getEmployee(), UsersDTO.class);
+                    formDTO.setEmployee(employeeDTO);
+                    return formDTO;
+                })
+                .collect(Collectors.toList());
+
+        return filteredForms;
+    }
 }

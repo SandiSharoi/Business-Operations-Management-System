@@ -56,4 +56,16 @@ public class ApproverController {
         List<FormApplyDTO> updatedForms = approverService.getVisibleFormsForApprover(approverId);
         return ResponseEntity.ok(updatedForms);
     }
+
+    @GetMapping("/form_decisions_history")
+    public String showPastDecisions(Model model, HttpSession session) {
+        UsersEntity loggedInUser = (UsersEntity) session.getAttribute("loggedInUser");
+        Long approverId = loggedInUser.getId();
+
+        // Fetch approved/rejected forms
+        List<FormApplyDTO> pastDecisions = approverService.getPastDecisionsForApprover(approverId);
+        model.addAttribute("pastDecisions", pastDecisions);
+
+        return "form_decisions_history";
+    }
 }
