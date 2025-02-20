@@ -44,8 +44,8 @@
                         </td>
                         
 
-                        <td th:if="${form.finalFormStatus} == null" class="text-center text-warning">Pending</td>
-                        <td th:unless="${form.finalFormStatus} == null" th:text="${form.finalFormStatus}" th:classappend="${form.finalFormStatus == 'Approve' ? 'text-success' : (form.finalFormStatus == 'Reject' ? 'text-danger' : '')}"
+                        <td th:if="${form.finalFormStatus} == null" class="text-center text-warning fw-bold">Pending</td>
+                        <td th:unless="${form.finalFormStatus} == null" th:text="${form.finalFormStatus}" th:classappend="${form.finalFormStatus == 'Approve' ? 'text-success fw-bold' : (form.finalFormStatus == 'Reject' ? 'text-danger fw-bold' : '')}"
                         class="text-center"></td>
                     </tr>
                 </tbody>

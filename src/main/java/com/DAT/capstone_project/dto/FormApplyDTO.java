@@ -51,4 +51,5 @@ public class FormApplyDTO {
 
     private Boolean editPermission;
 
+    private String formStatus;
 }
