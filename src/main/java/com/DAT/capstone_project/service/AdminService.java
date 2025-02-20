@@ -141,6 +141,10 @@ public class AdminService {
             departmentIds = teamRepository.findDepartmentIdsWhereDivhIsNull();
         }
 
+        else{
+            departmentIds = departmentRepository.findAllDepartmentIds();
+        }
+
         if (!departmentIds.isEmpty()) {
 
             //Converts departmentIds into a list of DepartmentDTO objects using stream().map()
