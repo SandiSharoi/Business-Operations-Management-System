@@ -21,4 +21,5 @@ public interface UsersRepository extends JpaRepository<UsersEntity, Long> {
 
     boolean existsByEmail(String email); // Checks if an email is already in the database
 
+    boolean existsByEmailAndIdNot(String email, Long userId);
 }

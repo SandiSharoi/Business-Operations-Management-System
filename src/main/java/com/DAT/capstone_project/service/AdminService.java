@@ -7,8 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.modelmapper.ModelMapper;
 
-import com.DAT.capstone_project.dto.ChangePasswordDTO;
-import com.DAT.capstone_project.dto.ChangePasswordResponse;
 import com.DAT.capstone_project.dto.UsersDTO;
 import com.DAT.capstone_project.model.UsersEntity;
 import com.DAT.capstone_project.model.PositionEntity;
@@ -97,9 +95,9 @@ public class AdminService {
             case "APPROVER":
                 // Add the check for "DivH" position
                 if ("Division Head".equalsIgnoreCase(position)) {
-                    model.addAttribute("menu", List.of("Form Decision"));
+                    model.addAttribute("menu", List.of("Form Decision","Form Decisions History"));
                 } else {
-                    model.addAttribute("menu", List.of("Form Apply", "Check Form Status", "Form Decision"));
+                    model.addAttribute("menu", List.of("Form Apply", "Check Form Status", "Form Decision","Form Decisions History"));
                 }
                 return "dashboard";
             case "EMPLOYEE":
@@ -179,6 +177,7 @@ public class AdminService {
 
             // Map DTO to Entity
             UsersEntity user = modelMapper.map(usersDTO, UsersEntity.class);
+            user.setPassword(passwordEncoder.encode(usersDTO.getPassword()));
             user.setPosition(position);
             user.setRole(roleRepository.findById(usersDTO.getRole().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Invalid Role ID")));
@@ -282,6 +281,11 @@ public class AdminService {
         UsersEntity user = usersRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return modelMapper.map(user, UsersDTO.class);
+    }
+
+    public boolean isEmailTaken(String email, Long userId) {
+        // Check if the email already exists for any user other than the current one
+        return usersRepository.existsByEmailAndIdNot(email, userId);
     }
 
     public void updateUser(UsersDTO userDTO) {
@@ -399,34 +403,45 @@ public class AdminService {
 
     // Password Change..........................................................................................
 
-    private boolean isValidPassword(String password) {
-        // Ensure password is at least 8 characters long and contains at least one special character
-        return password.length() >= 8 && password.matches(".*[!@#$%^&*(),.?\":{}|<>].*");
+    public String validatePasswordChange(Long userId, String oldPassword, String newPassword, String confirmPassword) {
+        UsersEntity user = usersRepository.findById(userId).orElse(null);
+
+        if (user == null) {
+            return "User not found.";
+        }
+
+        // Check if old password is correct
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            return "Old password is incorrect.";
+        }
+
+        // Check if new password matches confirm password
+        if (!newPassword.equals(confirmPassword)) {
+            return "New password and confirm password do not match.";
+        }
+
+        // Check if new password meets the required criteria
+        if (!isValidPassword(newPassword)) {
+            return "New password must contain at least 8 characters, 1 number, 1 uppercase letter, and 1 special character.";
+        }
+
+        return null;
     }
 
-    public ChangePasswordResponse changePassword(Long userId, ChangePasswordDTO changePasswordDTO, HttpSession session) {
-        // Fetch the user from the database
-        UsersEntity user = usersRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        System.out.println("Stored password: " + user.getPassword());
-        System.out.println("Entered password: " + changePasswordDTO.getOldPassword());
-
-        if (!passwordEncoder.matches(changePasswordDTO.getOldPassword(), user.getPassword())) {
-            return new ChangePasswordResponse(false, "Old password is incorrect.");
+    public boolean changePassword(Long userId, String newPassword) {
+        UsersEntity user = usersRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return false;
         }
 
-        if (!isValidPassword(changePasswordDTO.getNewPassword())) {
-            return new ChangePasswordResponse(false, "Password must be at least 8 characters long and contain at least one special character.");
-        }
-
-        // Update password and save user
-        user.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
+        // Encrypt the new password and save it
+        user.setPassword(passwordEncoder.encode(newPassword));
         usersRepository.save(user);
+        return true;
+    }
 
-        // Also update the session with the new password
-        session.setAttribute("loggedInUser", user);
-
-        return new ChangePasswordResponse(true, "Password changed successfully.");
+    private boolean isValidPassword(String password) {
+        String passwordPattern = "^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$";
+        return password.matches(passwordPattern);
     }
 }

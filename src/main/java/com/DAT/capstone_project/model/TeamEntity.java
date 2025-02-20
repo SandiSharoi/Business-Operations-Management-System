@@ -1,12 +1,14 @@
 package com.DAT.capstone_project.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
+
 
 @Data
 @Entity
 @Table(name = "team")
+@NoArgsConstructor
+@AllArgsConstructor
 public class TeamEntity {
 
     @Id
@@ -34,4 +36,8 @@ public class TeamEntity {
     @ToString.Exclude
     private UsersEntity divh;
 
+    public TeamEntity(String name, DepartmentEntity department) {
+        this.name = name;
+        this.department = department;
+    }
 }
