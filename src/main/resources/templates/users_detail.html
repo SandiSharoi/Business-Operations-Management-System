@@ -82,20 +82,59 @@
                 </div>
             </div>
 
-            <!-- Department Field (Show only if not null) -->
-            <div class="mb-3 d-flex align-items-center" th:if="${user.position != null} ">
-                <label for="department" class="form-label fw-bold w-25">Department</label>
-                <div th:if="${isEditable}" style="flex: 1;">
-                    <select id="department" th:field="*{department.id}" class="form-select" required>
-                        <option value="" disabled>Select Department</option>
-                        <option th:each="dep : ${departments}" th:value="${dep.id}" th:text="${dep.name}"
-                                th:selected="${dep.id == user.department.id}"></option>
-                    </select>
-                </div>
-                <div th:if="${!isEditable}" style="flex: 1;">
-                    <input type="text" th:field="${user.department.name}" class="form-control" th:readonly="${!isEditable}">
+
+
+            <!-- Department Field / Multi Departments Field.................................................................... -->
+            <div class="mb-3 d-flex align-items-center" th:if="${user.position != null}">
+                <label th:if="${user.position.name != 'Division Head'}" for="department" class="form-label fw-bold w-25">Department</label>
+
+                <div style="flex: 1;">
+                    <!-- Editable Mode -->
+                    <div th:if="${isEditable}">
+                        <!-- Single Department Edit -->
+                        <select id="department" th:field="*{department.id}" class="form-select" required
+                                th:unless="${user.position.name == 'Division Head'}">
+                            <option value="" disabled>Select Department</option>
+                            <option th:each="dep : ${departments}" th:value="${dep.id}"
+                                    th:text="${dep.name}" th:selected="${dep.id == user.department?.id}">
+                            </option>
+                        </select>
+
+                        <!-- Multi-Department Edit for Division Head -->
+                        <div th:if="${user.position.name == 'Division Head'}" class="mb-3">
+                            <label for="multiDepartment" class="form-label fw-bold">Select Departments</label>
+                            <select id="multiDepartment" th:field="*{departmentIds}" class="form-select" multiple>
+                                <option th:each="dep : ${departments}" th:value="${dep.id}" th:text="${dep.name}"></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- View-Only Mode -->
+                    <div th:unless="${isEditable}" style="flex: 1;">
+                        <!-- Single Department View for Non-Division Heads -->
+                        <div th:if="${user.position.name != 'Division Head'}">
+                            <input type="text" class="form-control" th:readonly="true"
+                                   th:value="${user.department != null ? user.department.name : 'No department assigned'}">
+                        </div>
+
+                        <!-- Multi-Department View for Division Head -->
+                        <div th:if="${user.position.name == 'Division Head'}" class="d-flex align-items-center mt-2">
+                            <label class="form-label fw-bold w-25">Departments</label>
+                            <div style="flex: 1;">
+                                <ul class="list-group">
+                                    <li class="list-group-item" th:each="dep : ${departments}"
+                                        th:if="${departmentIds.contains(dep.id)}" th:text="${dep.name}">
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
             </div>
+
+
+
 
             <!-- Role Field (Show only if not null) -->
             <div class="mb-3 d-flex align-items-center" th:if="${user.role != null}">
@@ -129,5 +168,6 @@
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
