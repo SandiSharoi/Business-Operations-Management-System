@@ -24,6 +24,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
+import static org.hibernate.query.sqm.tree.SqmNode.log;
+
 @Controller
 public class AdminController {
 
@@ -92,7 +94,6 @@ public class AdminController {
     }
 
 
-    // User details View or Edit or Delete........................................................
     @GetMapping("/user/{id}")
     public String viewOrEditUserDetails(@PathVariable Long id, @RequestParam(value = "edit", required = false) boolean edit, Model model) {
         // Fetch data for user details and dropdowns from AdminService
@@ -102,12 +103,20 @@ public class AdminController {
         model.addAttribute("user", data.get("user"));
         model.addAttribute("positions", data.get("positions"));
         model.addAttribute("teams", data.get("teams"));
-        model.addAttribute("departments", data.get("departments"));
         model.addAttribute("roles", data.get("roles"));
         model.addAttribute("isEditable", data.get("isEditable"));
 
+        // Add departmentIds or departments
+        if (data.containsKey("departmentIds")) {
+            model.addAttribute("departmentIds", data.get("departmentIds"));
+        }
+
+        // ✅ Ensure departments list is always added
+        model.addAttribute("departments", departmentRepository.findAll());
+
         return "users_detail"; // The Thymeleaf template to render the user details
     }
+
 
     @PostMapping("/user/{id}")
     public String updateUser(@PathVariable Long id, @ModelAttribute("user") UsersDTO userDTO, Model model) {

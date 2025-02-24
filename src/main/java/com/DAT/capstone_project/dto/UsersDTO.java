@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
@@ -16,7 +17,7 @@ import jakarta.validation.constraints.Pattern;
 @Data
 @Getter
 @Setter
-@NoArgsConstructor
+//@NoArgsConstructor
 @AllArgsConstructor
 public class UsersDTO {
     private Long id;
@@ -45,5 +46,11 @@ public class UsersDTO {
             this.id = id;
             this.name = name;
         }
+
+    // ✅ Add a constructor to initialize the departmentIds list
+    public UsersDTO() {
+        this.departmentIds = new ArrayList<>();
+    }
+
 
 }
