@@ -1,0 +1,29 @@
+public Map<String, Object> getUserDetailsOrEdit(Long id, boolean edit) {
+    UsersDTO user = getUserById(id);  // Get user details
+    List<PositionEntity> positions = positionRepository.findAll();
+    List<TeamEntity> teams = teamRepository.findAll();
+    List<RoleEntity> roles = roleRepository.findAll();
+    List<DepartmentEntity> departments = departmentRepository.findAll();
+
+    Map<String, Object> data = new HashMap<>();
+    data.put("user", user);
+    data.put("positions", positions);
+    data.put("teams", teams);
+    data.put("roles", roles);
+    data.put("departments", departments);
+    data.put("isEditable", edit);
+
+    if (user.getPosition() != null) {
+        if ("Division Head".equals(user.getPosition().getName())) {
+            // Division Heads have multiple departments
+            List<Integer> departmentIds = teamRepository.findDepartmentIdsByDivhId(user.getId());
+            user.setDepartmentIds(departmentIds);
+            data.put("departmentIds", departmentIds);
+        } else {
+            // Non-Division Head users have only one department
+            data.put("userDepartment", user.getDepartment());
+        }
+    }
+
+    return data;
+}

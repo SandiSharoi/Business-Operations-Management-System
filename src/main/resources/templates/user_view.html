@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Details Form</title>
+    <link th:href="@{/images/logo.png}" rel="icon" type="image/png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <style>
+        .form-label {
+            color: black; /* Makes the field label text black */
+        }
+    </style>
+
+</head>
+<body>
+
+<!-- Hero Section -->
+<section class="hero-section d-flex justify-content-center align-items-center min-vh-100 bg-light p-4">
+    <!-- Form Details Card -->
+    <div class="card col-lg-8 col-md-10 p-5 rounded-3 shadow-lg" style="background-color:#CCE7C2; color: white;">
+        <h1 class="text-center mb-4 fw-bold text-3d" style="color: #3D8D7A;">User Details</h1>
+
+        <form>
+            <!-- Full Name -->
+            <div class="mb-3 row">
+                <label class="col-sm-3 col-form-label fw-bold form-label">Full Name</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" th:value="${user.name}" readonly>
+                </div>
+            </div>
+
+            <!-- Email Address -->
+            <div class="mb-3 row">
+                <label class="col-sm-3 col-form-label fw-bold form-label">Email Address</label>
+                <div class="col-sm-9">
+                    <input type="email" class="form-control" th:value="${user.email}" readonly>
+                </div>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="mb-3 row">
+                <label class="col-sm-3 col-form-label fw-bold form-label">Phone Number</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" th:value="${user.phone}" readonly>
+                </div>
+            </div>
+
+            <!-- Position -->
+            <div class="mb-3 row" th:if="${user.position != null}">
+                <label class="col-sm-3 col-form-label fw-bold form-label">Position</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" th:value="${user.position.name}" readonly>
+                </div>
+            </div>
+
+            <!-- Single Department -->
+            <div class="mb-3 row"  th:if="${user.position.name != 'Division Head'}">
+                <label class="col-sm-3 col-form-label fw-bold form-label">Department</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" th:readonly="true"
+                           th:value="${user.department != null ? user.department.name : 'No department assigned'}">
+                </div>
+
+            </div>
+
+            <!-- Multi-Department for Division Head -->
+            <div class="mb-3 row" th:if="${user.position.name == 'Division Head'}" >
+                <label class="col-sm-3 col-form-label fw-bold form-label">Departments</label>
+
+                <div class="col-sm-9">
+                    <ul class="list-group">
+                        <li class="list-group-item" th:each="dep : ${departments}"
+                            th:if="${departmentIds.contains(dep.id)}" th:text="${dep.name}">
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <!-- Team -->
+            <div class="mb-3 row" th:if="${user.team != null}">
+                <label class="col-sm-3 col-form-label fw-bold form-label">Team</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" th:value="${user.team.name}" readonly>
+                </div>
+            </div>
+
+            <!-- Role -->
+            <div class="mb-3 row" th:if="${user.role != null}">
+                <label class="col-sm-3 col-form-label fw-bold form-label">Role</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" th:value="${user.role.name}" readonly>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="d-flex justify-content-center mt-4">
+                <a th:href="@{/registration_list}" class="btn btn-primary px-4 w-50">Back to List</a>
+            </div>
+
+        </form>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

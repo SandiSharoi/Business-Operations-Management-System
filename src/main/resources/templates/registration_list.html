@@ -56,13 +56,16 @@
                         <td th:text="${user.email}"></td>
 
                         <td>
-                            <!-- <a th:href="@{/user/detail/{id}(id=${user.id})}" th:attr="href=@{'/user/' + ${user.id} + '?edit=false'}" class="btn btn-primary">View</a> -->
-                            <a th:href="@{'/user/' + ${user.id} + '?edit=false'}" class="btn btn-primary">View</a>
+<!--                            <a th:href="@{'/user/' + ${user.id} + '?edit=false'}" class="btn btn-primary">View</a>-->
+                            <a th:href="@{'/user/view/' + ${user.id} }" class="btn btn-primary">View</a>
+
 
                         </td>
 
                         <td>
-                            <a th:href="@{'/user/' + ${user.id} + '?edit=true'}" class="btn btn-warning">Edit</a>
+<!--                            <a th:href="@{'/user/' + ${user.id} + '?edit=true'}" class="btn btn-warning">Edit</a>-->
+                            <a th:href="@{'/user/edit/' + ${user.id} }" class="btn btn-warning">Edit</a>
+
                         </td>   
                         
                         <td>
