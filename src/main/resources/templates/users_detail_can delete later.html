@@ -54,15 +54,9 @@
 
             <!-- Position Field (Show only if not null) -->
             <div class="mb-3 d-flex align-items-center" th:if="${user.position != null}">
-                <label for="position" class="form-label fw-bold w-25">Position</label>
-                <div th:if="${isEditable}" style="flex: 1;">
-                    <select id="position" th:field="*{position.id}" class="form-select" required>
-                        <option value="" disabled>Select Position</option>
-                        <option th:each="pos : ${positions}" th:value="${pos.id}" th:text="${pos.name}"
-                                th:selected="${pos.id == user.position.id}"></option>
-                    </select>
-                </div>
-                <div th:if="${!isEditable}" style="flex: 1;">
+                <label class="form-label fw-bold w-25">Position</label>
+
+                <div style="flex: 1;">
                     <input type="text" th:field="${user.position.name}" class="form-control" th:readonly="${!isEditable}">
                 </div>
             </div>
@@ -101,12 +95,15 @@
                         </select>
 
                         <!-- Multi-Department Edit for Division Head -->
-                        <div th:if="${user.position.name == 'Division Head'}" class="mb-3">
-                            <label for="multiDepartment" class="form-label fw-bold">Select Departments</label>
-                            <select id="multiDepartment" th:field="*{departmentIds}" class="form-select" multiple>
-                                <option th:each="dep : ${departments}" th:value="${dep.id}" th:text="${dep.name}"></option>
-                            </select>
+                        <div th:if="${user.position.name == 'Division Head'}" class="d-flex align-items-center mb-3">
+                            <label for="multiDepartment" class="form-label fw-bold w-25">Select Departments</label>
+                            <div style="flex: 1;">
+                                <select id="multiDepartment" th:field="*{departmentIds}" class="form-select" multiple>
+                                    <option th:each="dep : ${departments}" th:value="${dep.id}" th:text="${dep.name}"></option>
+                                </select>
+                            </div>
                         </div>
+
                     </div>
 
                     <!-- View-Only Mode -->
@@ -137,19 +134,27 @@
 
 
             <!-- Role Field (Show only if not null) -->
+<!--            <div class="mb-3 d-flex align-items-center" th:if="${user.role != null}">-->
+<!--                <label for="role" class="form-label fw-bold w-25">Role</label>-->
+<!--                <div th:if="${isEditable}" style="flex: 1;">-->
+<!--                    <select id="role" th:field="*{role.id}" class="form-select" required>-->
+<!--                        <option value="" disabled>Select Role</option>-->
+<!--                        <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"-->
+<!--                                th:selected="${role.id == user.role.id}"></option>-->
+<!--                    </select>-->
+<!--                </div>-->
+<!--                <div th:if="${!isEditable}" style="flex: 1;">-->
+<!--                    <input type="text" th:field="${user.role.name}" class="form-control" th:readonly="${!isEditable}">-->
+<!--                </div>-->
+<!--            </div>-->
+            <!-- Role Field (Show only if not null) -->
             <div class="mb-3 d-flex align-items-center" th:if="${user.role != null}">
-                <label for="role" class="form-label fw-bold w-25">Role</label>
-                <div th:if="${isEditable}" style="flex: 1;">
-                    <select id="role" th:field="*{role.id}" class="form-select" required>
-                        <option value="" disabled>Select Role</option>
-                        <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"
-                                th:selected="${role.id == user.role.id}"></option>
-                    </select>
-                </div>
-                <div th:if="${!isEditable}" style="flex: 1;">
-                    <input type="text" th:field="${user.role.name}" class="form-control" th:readonly="${!isEditable}">
+                <label class="form-label fw-bold w-25">Role</label>
+                <div style="flex: 1;">
+                    <input type="text" class="form-control" th:value="${user.role.name}" readonly>
                 </div>
             </div>
+
 
             <!-- Show Update and Reset buttons if in edit mode -->
             <div th:if="${isEditable}" class="d-flex justify-content-center gap-2 mt-5">

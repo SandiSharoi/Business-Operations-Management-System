@@ -329,8 +329,63 @@ public class AdminService {
 
 
     // User details View or Edit or Delete........................................................
-    public Map<String, Object> getUserDetailsOrEdit(Long id, boolean edit) {
-        UsersDTO user = getUserById(id);  // Get user details
+//    public Map<String, Object> getUserDetailsOrEdit(Long id, boolean edit) {
+//        UsersDTO user = getUserById(id);  // Get user details
+//        List<PositionEntity> positions = positionRepository.findAll();
+//        List<TeamEntity> teams = teamRepository.findAll();
+//        List<RoleEntity> roles = roleRepository.findAll();
+//
+//        Map<String, Object> data = new HashMap<>();
+//        data.put("user", user);
+//        data.put("positions", positions);
+//        data.put("teams", teams);
+//        data.put("roles", roles);
+//        data.put("isEditable", edit);
+//
+//        // ✅ If user is a Division Head, fetch associated departments
+//        if (user.getPosition() != null && "Division Head".equals(user.getPosition().getName())) {
+//            List<Integer> departmentIds = teamRepository.findDepartmentIdsByDivhId(user.getId());
+//            user.setDepartmentIds(departmentIds);
+//            data.put("departmentIds", departmentIds);  // Add departmentIds to data
+//        } else {
+//            List<DepartmentEntity> department = departmentRepository.findAll();
+//            data.put("department", department);
+//        }
+//
+//        return data;
+//    }
+
+    // User details View or Edit or Delete........................................................
+
+    public Map<String, Object> getUserDetailsView(Long id, boolean edit) {
+        UsersDTO user = getUserById(id); // Fetch user details from DB
+        List<PositionEntity> positions = positionRepository.findAll();
+        List<TeamEntity> teams = teamRepository.findAll();
+        List<RoleEntity> roles = roleRepository.findAll();
+
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("user", user);
+        data.put("positions", positions);
+        data.put("teams", teams);
+        data.put("roles", roles);
+
+                // ✅ If user is a Division Head, fetch associated departments
+        if (user.getPosition() != null && "Division Head".equals(user.getPosition().getName())) {
+            List<Integer> departmentIds = teamRepository.findDepartmentIdsByDivhId(user.getId());
+            user.setDepartmentIds(departmentIds);
+            data.put("departmentIds", departmentIds);  // Add departmentIds to data
+        } else {
+            List<DepartmentEntity> department = departmentRepository.findAll();
+            data.put("department", department);
+        }
+
+        return data;
+    }
+
+
+    public Map<String, Object> getUserDetailsEdit(Long id, boolean edit) {
+        UsersDTO user = getUserById(id); // Fetch user details from DB
         List<PositionEntity> positions = positionRepository.findAll();
         List<TeamEntity> teams = teamRepository.findAll();
         List<RoleEntity> roles = roleRepository.findAll();
@@ -340,7 +395,47 @@ public class AdminService {
         data.put("positions", positions);
         data.put("teams", teams);
         data.put("roles", roles);
-        data.put("isEditable", edit);
+
+        List<Integer> unassignedDepartmentIds = new ArrayList<>();
+        List<Integer> userDepartmentIds = new ArrayList<>();
+
+        // ✅ Include the user's assigned department(s)
+        if (user.getDepartment() != null) {
+            userDepartmentIds.add(user.getDepartment().getId());  // Single department user
+        } else if (user.getDepartmentIds() != null) {
+            userDepartmentIds.addAll(user.getDepartmentIds());  // Multi-department user
+        }
+
+        // ✅ Fetch unassigned departments based on position
+        if (user.getPosition() != null) {
+            switch (user.getPosition().getName()) {
+                case "Project Manager":
+                    unassignedDepartmentIds = teamRepository.findDepartmentIdsWherePmIsNull();
+                    break;
+                case "Department Head":
+                    unassignedDepartmentIds = teamRepository.findDepartmentIdsWhereDhIsNull();
+                    break;
+                case "Division Head":
+                    unassignedDepartmentIds = teamRepository.findDepartmentIdsWhereDivhIsNull();
+
+                    // ✅ Fetch departments associated with this Division Head
+                    List<Integer> assignedDepartmentIds = teamRepository.findDepartmentIdsByDivhId(user.getId());
+
+                    // ✅ Ensure we keep both unassigned departments & user's assigned departments
+                    userDepartmentIds.addAll(assignedDepartmentIds);
+                    data.put("departmentIds", userDepartmentIds); // Ensure all are included
+                    break;
+
+            }
+        }
+
+        // ✅ Ensure original department(s) are included in the final list
+        Set<Integer> finalDepartmentIds = new HashSet<>(unassignedDepartmentIds);
+        finalDepartmentIds.addAll(userDepartmentIds);
+
+        // ✅ Fetch department details
+        List<DepartmentEntity> departments = departmentRepository.findByIdIn(new ArrayList<>(finalDepartmentIds));
+        data.put("departments", departments);
 
         // ✅ If user is a Division Head, fetch associated departments
         if (user.getPosition() != null && "Division Head".equals(user.getPosition().getName())) {
