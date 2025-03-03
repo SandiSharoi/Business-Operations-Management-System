@@ -12,7 +12,7 @@
   <div class="card col-lg-8 col-md-10 p-5 rounded-3 shadow-lg" style="background-color:#CCE7C2;">
     <h1 class="text-center mb-4 fw-bold" style="color: #3D8D7A;">Edit User</h1>
 
-    <form th:action="@{/user/update}" th:object="${user}" method="post">
+    <form th:action="@{'/user/update/' + ${user.id} }" th:object="${user}" method="post">
       <input type="hidden" th:field="*{id}"/>
 
       <!-- Full Name -->
@@ -47,19 +47,9 @@
         </div>
       </div>
 
-      <!-- Team Selection -->
-      <div class="mb-3 row">
-        <label class="col-sm-3 col-form-label fw-bold text-end">Team</label>
-        <div class="col-sm-9">
-          <select th:field="*{team.id}" class="form-select">
-            <option value="" disabled>Select Team</option>
-            <option th:each="t : ${teams}" th:value="${t.id}" th:text="${t.name}"></option>
-          </select>
-        </div>
-      </div>
 
-      <!-- Department Selection -->
-      <div class="mb-3 row"  th:unless="${user.position.name == 'Division Head'}">
+      <!-- Single Department Selection -->
+      <div class="mb-3 row" th:unless="${user.position.name == 'Division Head'}" id="departmentDiv">
         <label class="col-sm-3 col-form-label fw-bold text-end">Department</label>
         <div class="col-sm-9">
           <select id="department" th:field="*{department.id}" class="form-select" required
@@ -72,9 +62,10 @@
         </div>
       </div>
 
+
       <!-- Multi-Department Edit for Division Head -->
       <div class="mb-3 row"  th:if="${user.position.name == 'Division Head'}" >
-        <label for="multiDepartment" class="form-label fw-bold w-25">Select Departments</label>
+        <label for="multiDepartment" class="col-sm-3 col-form-label fw-bold text-end">Select Departments</label>
         <div style="flex: 1;">
           <select id="multiDepartment" th:field="*{departmentIds}" class="form-select" multiple>
             <option th:each="dep : ${departments}" th:value="${dep.id}" th:text="${dep.name}"></option>
@@ -82,6 +73,20 @@
         </div>
       </div>
 
+      <!-- Team Selection -->
+      <div class="mb-3 row" id="teamDiv" th:if="${user.team != null}">
+        <label class="col-sm-3 col-form-label fw-bold text-end">Team</label>
+        <div class="col-sm-9">
+          <select id="team" th:field="*{team.id}" class="form-select">
+            <option value="" disabled th:selected="${team == null}">Select Team</option>
+            <option th:each="team : ${teams}"
+                    th:value="${team.id}"
+                    th:text="${team.name}"
+                    th:data-department-id="${team.department.id}">
+            </option>
+          </select>
+        </div>
+      </div>
 
       <!-- Role (Non-Editable) -->
       <div class="mb-3 row">
@@ -105,5 +110,44 @@
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  <!--Show Teams according to Department selected -->
+  document.addEventListener("DOMContentLoaded", function () {
+
+
+      var departmentSelect = document.getElementById("department");
+      var teamSelect = document.getElementById("team");
+
+      // Create "No Team Available" option
+      var noTeamOption = document.createElement("option");
+      noTeamOption.value = "";
+      noTeamOption.textContent = "No team under this department";
+      noTeamOption.disabled = true;
+      noTeamOption.hidden = true;
+      teamSelect.appendChild(noTeamOption);
+
+      departmentSelect.addEventListener("change", function () {
+          var selectedDepartmentId = this.value;
+          var teamOptions = teamSelect.querySelectorAll("option:not(:first-child)");
+
+          let teamFound = false;
+          teamOptions.forEach(option => {
+              if (option.value === "") return;
+              if (option.getAttribute("data-department-id") === selectedDepartmentId) {
+                  option.hidden = false;
+                  teamFound = true;
+              } else {
+                  option.hidden = true;
+              }
+          });
+
+          noTeamOption.hidden = teamFound;
+          teamSelect.value = "";
+      });
+
+
+  });
+</script>
 </body>
 </html>
