@@ -329,20 +329,48 @@ public class AdminService {
 
 
     // User details View or Edit or Delete........................................................
-    public Map<String, Object> getUserDetailsOrEdit(Long id, boolean edit) {
-        UsersDTO user = getUserById(id);  // Get user details
+//    public Map<String, Object> getUserDetailsOrEdit(Long id, boolean edit) {
+//        UsersDTO user = getUserById(id);  // Get user details
+//        List<PositionEntity> positions = positionRepository.findAll();
+//        List<TeamEntity> teams = teamRepository.findAll();
+//        List<RoleEntity> roles = roleRepository.findAll();
+//
+//        Map<String, Object> data = new HashMap<>();
+//        data.put("user", user);
+//        data.put("positions", positions);
+//        data.put("teams", teams);
+//        data.put("roles", roles);
+//        data.put("isEditable", edit);
+//
+//        // ✅ If user is a Division Head, fetch associated departments
+//        if (user.getPosition() != null && "Division Head".equals(user.getPosition().getName())) {
+//            List<Integer> departmentIds = teamRepository.findDepartmentIdsByDivhId(user.getId());
+//            user.setDepartmentIds(departmentIds);
+//            data.put("departmentIds", departmentIds);  // Add departmentIds to data
+//        } else {
+//            List<DepartmentEntity> department = departmentRepository.findAll();
+//            data.put("department", department);
+//        }
+//
+//        return data;
+//    }
+
+    // User details View or Edit or Delete........................................................
+
+    public Map<String, Object> getUserDetailsView(Long id, boolean edit) {
+        UsersDTO user = getUserById(id); // Fetch user details from DB
         List<PositionEntity> positions = positionRepository.findAll();
         List<TeamEntity> teams = teamRepository.findAll();
         List<RoleEntity> roles = roleRepository.findAll();
+
 
         Map<String, Object> data = new HashMap<>();
         data.put("user", user);
         data.put("positions", positions);
         data.put("teams", teams);
         data.put("roles", roles);
-        data.put("isEditable", edit);
 
-        // ✅ If user is a Division Head, fetch associated departments
+                // ✅ If user is a Division Head, fetch associated departments
         if (user.getPosition() != null && "Division Head".equals(user.getPosition().getName())) {
             List<Integer> departmentIds = teamRepository.findDepartmentIdsByDivhId(user.getId());
             user.setDepartmentIds(departmentIds);

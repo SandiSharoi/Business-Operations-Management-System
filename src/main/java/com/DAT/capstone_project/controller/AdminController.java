@@ -94,17 +94,37 @@ public class AdminController {
     }
 
 
-    @GetMapping("/user/{id}")
-    public String viewOrEditUserDetails(@PathVariable Long id, @RequestParam(value = "edit", required = false) boolean edit, Model model) {
-        // Fetch data for user details and dropdowns from AdminService
-        Map<String, Object> data = adminService.getUserDetailsOrEdit(id, edit);
+//    @GetMapping("/user/{id}")
+//    public String viewOrEditUserDetails(@PathVariable Long id, @RequestParam(value = "edit", required = false) boolean edit, Model model) {
+//        // Fetch data for user details and dropdowns from AdminService
+//        Map<String, Object> data = adminService.getUserDetailsOrEdit(id, edit);
+//
+//        // Add the data to the model
+//        model.addAttribute("user", data.get("user"));
+//        model.addAttribute("positions", data.get("positions"));
+//        model.addAttribute("teams", data.get("teams"));
+//        model.addAttribute("roles", data.get("roles"));
+//        model.addAttribute("isEditable", data.get("isEditable"));
+//
+//        // Add departmentIds or departments
+//        if (data.containsKey("departmentIds")) {
+//            model.addAttribute("departmentIds", data.get("departmentIds"));
+//        }
+//
+//        // ✅ Ensure departments list is always added
+//        model.addAttribute("departments", departmentRepository.findAll());
+//
+//        return "users_detail"; // The Thymeleaf template to render the user details
+//    }
 
-        // Add the data to the model
+    // User details View .........................................................
+    @GetMapping("/user/view/{id}")
+    public String viewUserDetails(@PathVariable Long id, Model model) {
+        Map<String, Object> data = adminService.getUserDetailsView(id, false); // View-only mode (false)
         model.addAttribute("user", data.get("user"));
         model.addAttribute("positions", data.get("positions"));
         model.addAttribute("teams", data.get("teams"));
         model.addAttribute("roles", data.get("roles"));
-        model.addAttribute("isEditable", data.get("isEditable"));
 
         // Add departmentIds or departments
         if (data.containsKey("departmentIds")) {
@@ -114,22 +134,41 @@ public class AdminController {
         // ✅ Ensure departments list is always added
         model.addAttribute("departments", departmentRepository.findAll());
 
-        return "users_detail"; // The Thymeleaf template to render the user details
+        return "user_view"; // Loads user_view.html
     }
 
+    // User details Edit .........................................................
+    @GetMapping("/user/edit/{id}")
+    public String editUserDetails(@PathVariable Long id, Model model) {
+        Map<String, Object> data = adminService.getUserDetailsView(id, true); // Edit mode (true)
+        model.addAttribute("user", data.get("user"));
+        model.addAttribute("positions", data.get("positions"));
+        model.addAttribute("teams", data.get("teams"));
+        model.addAttribute("roles", data.get("roles"));
 
-    @PostMapping("/user/{id}")
+        // Add departmentIds or departments
+        if (data.containsKey("departmentIds")) {
+            model.addAttribute("departmentIds", data.get("departmentIds"));
+        }
+
+        // ✅ Ensure departments list is always added
+        model.addAttribute("departments", departmentRepository.findAll());
+
+        return "user_edit"; // Loads user_edit.html
+    }
+
+    @PostMapping("/user/update/{id}")
     public String updateUser(@PathVariable Long id, @ModelAttribute("user") UsersDTO userDTO, Model model) {
         // Check if the email already exists (excluding the current user)
         if (adminService.isEmailTaken(  userDTO.getEmail(), id)) {
             model.addAttribute("emailError", "This email is already in use. Please use a different email.");
 
             // Get user details + dropdown lists
-            Map<String, Object> data = adminService.getUserDetailsOrEdit(id, true);
+            Map<String, Object> data = adminService.getUserDetailsView(id, true);
             model.addAllAttributes(data);
 
             model.addAttribute("user", userDTO);  // Add user DTO back to the model
-            return "users_detail";  // Return to the same page
+            return "users_edit";  // Return to the same page
         }
 
         // Proceed with updating the user
