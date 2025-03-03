@@ -55,9 +55,17 @@
           <select id="department" th:field="*{department.id}" class="form-select" required
                  >
             <option value="" disabled>Select Department</option>
-            <option th:each="dep : ${departments}" th:value="${dep.id}"
-                    th:text="${dep.name}" th:selected="${dep.id == user.department?.id}">
+<!--            <option th:each="dep : ${departments}" th:value="${dep.id}"-->
+<!--                    th:text="${dep.name}" th:selected="${dep.id == user.department?.id}">-->
+<!--            </option>-->
+
+            <option th:each="dep : ${departments}"
+                    th:value="${dep.id}"
+                    th:text="${dep.name}"
+                    th:selected="${dep.id == user.department?.id}"
+                    th:classappend="${dep.id == user.department?.id ? 'text-primary fw-bold' : ''}">
             </option>
+
           </select>
         </div>
       </div>
@@ -68,8 +76,17 @@
         <label for="multiDepartment" class="col-sm-3 col-form-label fw-bold text-end">Select Departments</label>
         <div style="flex: 1;">
           <select id="multiDepartment" th:field="*{departmentIds}" class="form-select" multiple>
-            <option th:each="dep : ${departments}" th:value="${dep.id}" th:text="${dep.name}"></option>
+<!--            <option th:each="dep : ${departments}" th:value="${dep.id}" th:text="${dep.name}"></option>-->
+
+            <option th:each="dep : ${departments}"
+                    th:value="${dep.id}"
+                    th:text="${dep.name}"
+                    th:selected="${#lists.contains(user.departmentIds, dep.id)}"
+                    th:classappend="${#lists.contains(user.departmentIds, dep.id) ? 'text-primary fw-bold' : ''}">
+            </option>
+
           </select>
+
         </div>
       </div>
 
@@ -113,41 +130,40 @@
 
 <script>
   <!--Show Teams according to Department selected -->
-  document.addEventListener("DOMContentLoaded", function () {
+   document.addEventListener("DOMContentLoaded", function () {
 
 
-      var departmentSelect = document.getElementById("department");
-      var teamSelect = document.getElementById("team");
+       var departmentSelect = document.getElementById("department");
+       var teamSelect = document.getElementById("team");
 
-      // Create "No Team Available" option
-      var noTeamOption = document.createElement("option");
-      noTeamOption.value = "";
-      noTeamOption.textContent = "No team under this department";
-      noTeamOption.disabled = true;
-      noTeamOption.hidden = true;
-      teamSelect.appendChild(noTeamOption);
+       // Create "No Team Available" option
+       var noTeamOption = document.createElement("option");
+       noTeamOption.value = "";
+       noTeamOption.textContent = "No team under this department";
+       noTeamOption.disabled = true;
+       noTeamOption.hidden = true;
+       teamSelect.appendChild(noTeamOption);
 
-      departmentSelect.addEventListener("change", function () {
-          var selectedDepartmentId = this.value;
-          var teamOptions = teamSelect.querySelectorAll("option:not(:first-child)");
+       departmentSelect.addEventListener("change", function () {
+           var selectedDepartmentId = this.value;
+           var teamOptions = teamSelect.querySelectorAll("option:not(:first-child)");
 
-          let teamFound = false;
-          teamOptions.forEach(option => {
-              if (option.value === "") return;
-              if (option.getAttribute("data-department-id") === selectedDepartmentId) {
-                  option.hidden = false;
-                  teamFound = true;
-              } else {
-                  option.hidden = true;
-              }
-          });
+           let teamFound = false;
+           teamOptions.forEach(option => {
+               if (option.value === "") return;
+               if (option.getAttribute("data-department-id") === selectedDepartmentId) {
+                   option.hidden = false;
+                   teamFound = true;
+               } else {
+                   option.hidden = true;
+               }
+           });
 
-          noTeamOption.hidden = teamFound;
-          teamSelect.value = "";
-      });
+           noTeamOption.hidden = teamFound;
+           teamSelect.value = "";
+       });
 
-
-  });
+   });
 </script>
 </body>
 </html>

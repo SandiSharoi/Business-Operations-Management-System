@@ -55,14 +55,6 @@
                 </div>
             </div>
 
-            <!-- Team -->
-            <div class="mb-3 row" th:if="${user.team != null}">
-                <label class="col-sm-3 col-form-label fw-bold form-label">Team</label>
-                <div class="col-sm-9">
-                    <input type="text" class="form-control" th:value="${user.team.name}" readonly>
-                </div>
-            </div>
-
             <!-- Single Department -->
             <div class="mb-3 row"  th:if="${user.position.name != 'Division Head'}">
                 <label class="col-sm-3 col-form-label fw-bold form-label">Department</label>
@@ -85,6 +77,14 @@
                     </ul>
                 </div>
 
+            </div>
+
+            <!-- Team -->
+            <div class="mb-3 row" th:if="${user.team != null}">
+                <label class="col-sm-3 col-form-label fw-bold form-label">Team</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" th:value="${user.team.name}" readonly>
+                </div>
             </div>
 
             <!-- Role -->

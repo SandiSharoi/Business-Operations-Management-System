@@ -137,25 +137,29 @@ public class AdminController {
         return "user_view"; // Loads user_view.html
     }
 
-    // User details Edit .........................................................
+// User details Edit .........................................................
+
     @GetMapping("/user/edit/{id}")
     public String editUserDetails(@PathVariable Long id, Model model) {
-        Map<String, Object> data = adminService.getUserDetailsView(id, true); // Edit mode (true)
+        Map<String, Object> data = adminService.getUserDetailsEdit(id, true); // Edit mode (true)
         model.addAttribute("user", data.get("user"));
         model.addAttribute("positions", data.get("positions"));
         model.addAttribute("teams", data.get("teams"));
         model.addAttribute("roles", data.get("roles"));
 
-        // Add departmentIds or departments
+        // ✅ Add departmentIds if available (for Division Head)
         if (data.containsKey("departmentIds")) {
             model.addAttribute("departmentIds", data.get("departmentIds"));
         }
 
-        // ✅ Ensure departments list is always added
-        model.addAttribute("departments", departmentRepository.findAll());
+        // ✅ Use the refined list of departments from getUserDetailsEdit
+        if (data.containsKey("departments")) {
+            model.addAttribute("departments", data.get("departments"));
+        }
 
         return "user_edit"; // Loads user_edit.html
     }
+
 
     @PostMapping("/user/update/{id}")
     public String updateUser(@PathVariable Long id, @ModelAttribute("user") UsersDTO userDTO, Model model) {
