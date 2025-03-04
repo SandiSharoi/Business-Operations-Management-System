@@ -2,6 +2,7 @@ package com.DAT.capstone_project.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.EqualsAndHashCode;
 
 
 @Data
@@ -9,6 +10,8 @@ import lombok.*;
 @Table(name = "team")
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"user", "otherField"})  // Exclude fields that reference other entities
+
 public class TeamEntity {
 
     @Id

@@ -147,7 +147,7 @@ public class AdminController {
         model.addAttribute("teams", data.get("teams"));
         model.addAttribute("roles", data.get("roles"));
 
-        // ✅ Add departmentIds if available (for Division Head)
+        // ✅ Pass departmentIds for Division Head
         if (data.containsKey("departmentIds")) {
             model.addAttribute("departmentIds", data.get("departmentIds"));
         }
@@ -157,8 +157,14 @@ public class AdminController {
             model.addAttribute("departments", data.get("departments"));
         }
 
+        // ✅ Pass assigned department IDs for highlighting
+        if (data.containsKey("assignedDepartmentIds")) {
+            model.addAttribute("assignedDepartmentIds", data.get("assignedDepartmentIds"));
+        }
+
         return "user_edit"; // Loads user_edit.html
     }
+
 
 
     @PostMapping("/user/update/{id}")

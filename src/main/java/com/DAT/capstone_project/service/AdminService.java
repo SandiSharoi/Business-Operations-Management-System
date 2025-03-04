@@ -383,72 +383,101 @@ public class AdminService {
         return data;
     }
 
-
     public Map<String, Object> getUserDetailsEdit(Long id, boolean edit) {
         UsersDTO user = getUserById(id); // Fetch user details from DB
         List<PositionEntity> positions = positionRepository.findAll();
-        List<TeamEntity> teams = teamRepository.findAll();
         List<RoleEntity> roles = roleRepository.findAll();
 
         Map<String, Object> data = new HashMap<>();
         data.put("user", user);
         data.put("positions", positions);
-        data.put("teams", teams);
         data.put("roles", roles);
 
         List<Integer> unassignedDepartmentIds = new ArrayList<>();
         List<Integer> userDepartmentIds = new ArrayList<>();
+        List<Integer> assignedDepartmentIds = new ArrayList<>();
+        List<DepartmentEntity> allDepartments = new ArrayList<>();
 
-        // ✅ Include the user's assigned department(s)
         if (user.getDepartment() != null) {
-            userDepartmentIds.add(user.getDepartment().getId());  // Single department user
+            userDepartmentIds.add(user.getDepartment().getId());
         } else if (user.getDepartmentIds() != null) {
-            userDepartmentIds.addAll(user.getDepartmentIds());  // Multi-department user
+            userDepartmentIds.addAll(user.getDepartmentIds());
         }
 
-        // ✅ Fetch unassigned departments based on position
+        // Fetch unassigned and assigned departments for Division Head
+        boolean isPm = "Project Manager".equals(user.getPosition().getName());
+        boolean isDh = "Department Head".equals(user.getPosition().getName());
+        boolean isDivh = "Division Head".equals(user.getPosition().getName());
+
         if (user.getPosition() != null) {
-            switch (user.getPosition().getName()) {
-                case "Project Manager":
-                    unassignedDepartmentIds = teamRepository.findDepartmentIdsWherePmIsNull();
-                    break;
-                case "Department Head":
-                    unassignedDepartmentIds = teamRepository.findDepartmentIdsWhereDhIsNull();
-                    break;
-                case "Division Head":
-                    unassignedDepartmentIds = teamRepository.findDepartmentIdsWhereDivhIsNull();
+            if (isPm) {
+                unassignedDepartmentIds = teamRepository.findDepartmentIdsWherePmIsNull();
+            } else if (isDh) {
+                unassignedDepartmentIds = teamRepository.findDepartmentIdsWhereDhIsNull();
+            } else if (isDivh) {
+                unassignedDepartmentIds = teamRepository.findDepartmentIdsWhereDivhIsNull();
+                assignedDepartmentIds = teamRepository.findDepartmentIdsByDivhId(user.getId()); // Assigned departments
 
-                    // ✅ Fetch departments associated with this Division Head
-                    List<Integer> assignedDepartmentIds = teamRepository.findDepartmentIdsByDivhId(user.getId());
-
-                    // ✅ Ensure we keep both unassigned departments & user's assigned departments
-                    userDepartmentIds.addAll(assignedDepartmentIds);
-                    data.put("departmentIds", userDepartmentIds); // Ensure all are included
-                    break;
-
+                userDepartmentIds.addAll(assignedDepartmentIds);
+            } else {
+                // Fetch all departments for positions that are neither PM, DH, nor DivH
+                allDepartments = departmentRepository.findAllByOrderByIdAsc();
             }
         }
 
-        // ✅ Ensure original department(s) are included in the final list
+        // Combine department IDs to ensure original department(s) are included
         Set<Integer> finalDepartmentIds = new HashSet<>(unassignedDepartmentIds);
         finalDepartmentIds.addAll(userDepartmentIds);
 
-        // ✅ Fetch department details
-        List<DepartmentEntity> departments = departmentRepository.findByIdIn(new ArrayList<>(finalDepartmentIds));
-        data.put("departments", departments);
-
-        // ✅ If user is a Division Head, fetch associated departments
-        if (user.getPosition() != null && "Division Head".equals(user.getPosition().getName())) {
-            List<Integer> departmentIds = teamRepository.findDepartmentIdsByDivhId(user.getId());
-            user.setDepartmentIds(departmentIds);
-            data.put("departmentIds", departmentIds);  // Add departmentIds to data
+        if (allDepartments.isEmpty()) { // Fetch departments if not already retrieved
+            allDepartments = departmentRepository.findByIdIn(new ArrayList<>(finalDepartmentIds));
         } else {
-            List<DepartmentEntity> department = departmentRepository.findAll();
-            data.put("department", department);
+            // If all departments were fetched, ensure we use their IDs to fetch teams
+            finalDepartmentIds.clear();
+            for (DepartmentEntity dept : allDepartments) {
+                finalDepartmentIds.add(dept.getId());
+            }
         }
+
+        data.put("departments", allDepartments);
+        data.put("assignedDepartmentIds", assignedDepartmentIds); // Pass assigned departments explicitly
+
+
+        // Fetch teams for the selected department(s)
+        List<TeamEntity> teams = new ArrayList<>();
+        TeamEntity assignedTeam = null; // To store the currently assigned team for the PM
+
+        for (Integer deptId : finalDepartmentIds) {
+            if (isPm) {
+                // Fetch the PM's currently assigned team (if any) for the department
+                assignedTeam = teamRepository.findTeamByPmIdAndDeptId(user.getId(), deptId);
+
+                // Only fetch unassigned teams in the selected department (with pm_id = null)
+                List<TeamEntity> unassignedTeams = teamRepository.findTeamsWithUnassignedPm(deptId);
+
+                // Add the assigned team first (if exists), then add unassigned teams
+                if (assignedTeam != null) {
+                    teams.add(assignedTeam); // Highlight this in the dropdown
+                }
+                teams.addAll(unassignedTeams); // Add unassigned teams to the list for this department
+            } else if (isDh) {
+                teams.addAll(teamRepository.findTeamsWithUnassignedDh(deptId));
+            } else if (isDivh) {
+                teams.addAll(teamRepository.findTeamsWithUnassignedDivh(deptId));
+            } else {
+                // Fetch all teams under the department for other positions
+                teams.addAll(teamRepository.findByDepartmentId(deptId));
+            }
+        }
+        data.put("teams", teams);
+        data.put("assignedTeam", assignedTeam); // Add the assigned team to the data map
 
         return data;
     }
+
+
+
+
 
 
     public void deleteUser(Long id) {
