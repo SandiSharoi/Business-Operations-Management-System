@@ -65,14 +65,14 @@ public class AdminController {
         return "redirect:/";
     }
 
-//Show User Registration Page.........................................................................
+    //Show User Registration Page.........................................................................
     @GetMapping("/user_registration")
     public String showRegistrationPage(Model model) {
         return adminService.showRegistrationPage(model);
     }
 
 
-//Show Departments which has pm_id = null or dh_id = null or divh_id = null according to Approver Position Registration...........................................
+    //Show Departments which has pm_id = null or dh_id = null or divh_id = null according to Approver Position Registration...........................................
 //    Handles AJAX request (fetch in JavaScript) to /get_departments
     @GetMapping("/get_departments")
     @ResponseBody
@@ -93,29 +93,6 @@ public class AdminController {
         return adminService.showRegistrationListPage(model);
     }
 
-
-//    @GetMapping("/user/{id}")
-//    public String viewOrEditUserDetails(@PathVariable Long id, @RequestParam(value = "edit", required = false) boolean edit, Model model) {
-//        // Fetch data for user details and dropdowns from AdminService
-//        Map<String, Object> data = adminService.getUserDetailsOrEdit(id, edit);
-//
-//        // Add the data to the model
-//        model.addAttribute("user", data.get("user"));
-//        model.addAttribute("positions", data.get("positions"));
-//        model.addAttribute("teams", data.get("teams"));
-//        model.addAttribute("roles", data.get("roles"));
-//        model.addAttribute("isEditable", data.get("isEditable"));
-//
-//        // Add departmentIds or departments
-//        if (data.containsKey("departmentIds")) {
-//            model.addAttribute("departmentIds", data.get("departmentIds"));
-//        }
-//
-//        // ✅ Ensure departments list is always added
-//        model.addAttribute("departments", departmentRepository.findAll());
-//
-//        return "users_detail"; // The Thymeleaf template to render the user details
-//    }
 
     // User details View .........................................................
     @GetMapping("/user/view/{id}")
@@ -147,7 +124,7 @@ public class AdminController {
         model.addAttribute("teams", data.get("teams"));
         model.addAttribute("roles", data.get("roles"));
 
-        // ✅ Add departmentIds if available (for Division Head)
+        // ✅ Pass departmentIds for Division Head
         if (data.containsKey("departmentIds")) {
             model.addAttribute("departmentIds", data.get("departmentIds"));
         }
@@ -157,8 +134,14 @@ public class AdminController {
             model.addAttribute("departments", data.get("departments"));
         }
 
+        // ✅ Pass assigned department IDs for highlighting
+        if (data.containsKey("assignedDepartmentIds")) {
+            model.addAttribute("assignedDepartmentIds", data.get("assignedDepartmentIds"));
+        }
+
         return "user_edit"; // Loads user_edit.html
     }
+
 
 
     @PostMapping("/user/update/{id}")

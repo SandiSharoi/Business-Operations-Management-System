@@ -25,10 +25,8 @@ public interface DepartmentRepository extends JpaRepository<DepartmentEntity, In
     @Query("SELECT d FROM DepartmentEntity d WHERE d.id IN :ids")
     List<DepartmentEntity> findByIdIn(@Param("ids") List<Integer> ids);
 
-//   Reterive all department IDs from department table
+    //   Reterive all department IDs from department table
     @Query("SELECT d.id FROM DepartmentEntity d")
     List<Integer> findAllDepartmentIds();
 
 }
-
-

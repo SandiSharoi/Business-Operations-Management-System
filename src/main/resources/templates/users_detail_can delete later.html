@@ -77,7 +77,6 @@
             </div>
 
 
-
             <!-- Department Field / Multi Departments Field.................................................................... -->
             <div class="mb-3 d-flex align-items-center" th:if="${user.position != null}">
                 <label th:if="${user.position.name != 'Division Head'}" for="department" class="form-label fw-bold w-25">Department</label>
@@ -130,23 +129,6 @@
                 </div>
             </div>
 
-
-
-
-            <!-- Role Field (Show only if not null) -->
-<!--            <div class="mb-3 d-flex align-items-center" th:if="${user.role != null}">-->
-<!--                <label for="role" class="form-label fw-bold w-25">Role</label>-->
-<!--                <div th:if="${isEditable}" style="flex: 1;">-->
-<!--                    <select id="role" th:field="*{role.id}" class="form-select" required>-->
-<!--                        <option value="" disabled>Select Role</option>-->
-<!--                        <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"-->
-<!--                                th:selected="${role.id == user.role.id}"></option>-->
-<!--                    </select>-->
-<!--                </div>-->
-<!--                <div th:if="${!isEditable}" style="flex: 1;">-->
-<!--                    <input type="text" th:field="${user.role.name}" class="form-control" th:readonly="${!isEditable}">-->
-<!--                </div>-->
-<!--            </div>-->
             <!-- Role Field (Show only if not null) -->
             <div class="mb-3 d-flex align-items-center" th:if="${user.role != null}">
                 <label class="form-label fw-bold w-25">Role</label>
