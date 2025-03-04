@@ -4,10 +4,12 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
 import jakarta.validation.constraints.Pattern;
+import lombok.EqualsAndHashCode;
 
 @Data
 @Entity
 @Table(name = "users")
+@EqualsAndHashCode(exclude = {"team", "otherField"})  // Exclude fields that reference other entities
 public class UsersEntity {
 
     @Id

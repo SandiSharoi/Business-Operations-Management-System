@@ -63,4 +63,20 @@ public interface TeamRepository extends JpaRepository<TeamEntity, Integer>{
     @Query("SELECT DISTINCT t.department.id FROM TeamEntity t WHERE t.divh.id = :divhId")
     List<Integer> findDepartmentIdsByDivhId(@Param("divhId") Long divhId);
 
+    @Query("SELECT t FROM TeamEntity t WHERE t.department.id = :departmentId AND t.pm.id IS NULL")
+    List<TeamEntity> findTeamsWithUnassignedPm(@Param("departmentId") Integer departmentId);
+
+    @Query("SELECT t FROM TeamEntity t WHERE t.department.id = :departmentId AND t.dh.id IS NULL")
+    List<TeamEntity> findTeamsWithUnassignedDh(@Param("departmentId") Integer departmentId);
+
+    @Query("SELECT t FROM TeamEntity t WHERE t.department.id = :departmentId AND t.divh.id IS NULL")
+    List<TeamEntity> findTeamsWithUnassignedDivh(@Param("departmentId") Integer departmentId);
+
+//    @Query("SELECT t FROM TeamEntity t WHERE t.pm.id = :pmId")
+//    List<TeamEntity> findTeamsByPmId(@Param("pmId") Long pmId);
+
+    // Custom query to find a team by pm_id and department_id
+    @Query("SELECT t FROM TeamEntity t WHERE t.pm.id = :pmId AND t.department.id = :deptId")
+    TeamEntity findTeamByPmIdAndDeptId(@Param("pmId") Long pmId, @Param("deptId") Integer deptId);
+
 }

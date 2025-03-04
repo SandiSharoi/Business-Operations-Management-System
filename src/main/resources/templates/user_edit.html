@@ -53,11 +53,8 @@
         <label class="col-sm-3 col-form-label fw-bold text-end">Department</label>
         <div class="col-sm-9">
           <select id="department" th:field="*{department.id}" class="form-select" required
-                 >
+          >
             <option value="" disabled>Select Department</option>
-<!--            <option th:each="dep : ${departments}" th:value="${dep.id}"-->
-<!--                    th:text="${dep.name}" th:selected="${dep.id == user.department?.id}">-->
-<!--            </option>-->
 
             <option th:each="dep : ${departments}"
                     th:value="${dep.id}"
@@ -72,23 +69,23 @@
 
 
       <!-- Multi-Department Edit for Division Head -->
-      <div class="mb-3 row"  th:if="${user.position.name == 'Division Head'}" >
+      <div class="mb-3 row" th:if="${user.position.name == 'Division Head'}">
         <label for="multiDepartment" class="col-sm-3 col-form-label fw-bold text-end">Select Departments</label>
         <div style="flex: 1;">
           <select id="multiDepartment" th:field="*{departmentIds}" class="form-select" multiple>
-<!--            <option th:each="dep : ${departments}" th:value="${dep.id}" th:text="${dep.name}"></option>-->
-
             <option th:each="dep : ${departments}"
                     th:value="${dep.id}"
                     th:text="${dep.name}"
                     th:selected="${#lists.contains(user.departmentIds, dep.id)}"
-                    th:classappend="${#lists.contains(user.departmentIds, dep.id) ? 'text-primary fw-bold' : ''}">
+                    th:classappend="${#lists.contains(assignedDepartmentIds, dep.id) ? 'text-primary fw-bold' : ''}">
             </option>
-
           </select>
-
         </div>
       </div>
+
+
+
+
 
       <!-- Team Selection -->
       <div class="mb-3 row" id="teamDiv" th:if="${user.team != null}">
