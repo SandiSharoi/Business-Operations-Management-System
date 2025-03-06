@@ -9,163 +9,183 @@
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome CSS for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+
+    <style>
+        .action-icon {
+            font-size: 20px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .edit-icon {
+            color: #ffc107;
+        }
+
+        .action-icon:hover {
+            transform: scale(1.2);
+        }
+    </style>
 </head>
 
 <body class="bg-light">
 
-    <div class="container mt-5 bg-white p-4 rounded shadow-sm">
-        <h1 class="text-center mb-4 fs-2 text-dark">Team List</h1>
+<div class="container mt-5 bg-white p-4 rounded shadow-sm">
+    <h1 class="text-center mb-4 fs-2 text-dark">Team List</h1>
 
-        <!-- Flash Messages -->
-        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <span th:text="${message}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-
-        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-            <span th:text="${error}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div> 
-        <div class="col-md-6">
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTeamModal">
-                Add New Team
-            </button>
-        </div>
-
-        <div class="table-responsive">
-            <table class="table table-striped text-center mt-4" id="teamTable">
-                <thead class="table-primary">
-                    <tr>
-                        <th>No</th>
-                        <th>Name</th>
-                        <th>Department</th>
-                        <th>Edit</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="team, iterStat : ${team}" th:attr="data-id=${team.id}">
-                        <td th:text="${iterStat.index + 1}"></td>
-                        <td th:text="${team.name}"></td>
-                        <td th:text="${team.department.name}"></td>
-                        <td>
-                            <button type="button" class="btn btn-warning" data-bs-toggle="modal"
-                                data-bs-target="#editTeamModal">
-                                Edit
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+    <!-- Flash Messages -->
+    <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${message}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <!-- Add Team Modal -->
-    <div class="modal fade" id="addTeamModal" tabindex="-1" aria-labelledby="addTeamModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addTeamModalLabel">Add Team</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="teamForm" th:action="@{/team_registration}" th:object="${teamObject}" method="post">
-                        <input type="hidden" id="teamId" name="id">
-                        <label for="departmentName" class="form-label">Department Name</label>
-                        <select class="form-select" th:field="*{department.id}" id="departmentName" name="departmentId"
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="col-md-6">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTeamModal">
+            Add New Team
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped text-center mt-4" id="teamTable">
+            <thead class="table-primary">
+            <tr>
+                <th>No</th>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Edit</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="team, iterStat : ${team}" th:attr="data-id=${team.id}">
+                <td th:text="${iterStat.index + 1}"></td>
+                <td th:text="${team.name}"></td>
+                <td th:text="${team.department.name}"></td>
+                <td>
+                    <!-- Edit button with pencil icon -->
+                    <button type="button" class="action-icon edit-icon" data-bs-toggle="modal"
+                            data-bs-target="#editTeamModal">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Team Modal -->
+<div class="modal fade" id="addTeamModal" tabindex="-1" aria-labelledby="addTeamModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTeamModalLabel">Add Team</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="teamForm" th:action="@{/team_registration}" th:object="${teamObject}" method="post">
+                    <input type="hidden" id="teamId" name="id">
+                    <label for="departmentName" class="form-label">Department Name</label>
+                    <select class="form-select" th:field="*{department.id}" id="departmentName" name="departmentId"
                             required>
-
-                            <option value="" disabled selected>Select a department</option>
-                            <option th:each="department : ${departments}" th:value="${department.id}"
+                        <option value="" disabled selected>Select a department</option>
+                        <option th:each="department : ${departments}" th:value="${department.id}"
                                 th:text="${department.name}"></option>
-                        </select>
-                        <div class="mb-3">
-                            <label for="teamName" class="form-label">Team Name</label>
-                            <input type="text" th:field="*{name}" class="form-control" id="teamName" name="name"
-                                required>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" id="saveTeamButton" class="btn btn-primary">Save</button>
-                </div>
+                    </select>
+                    <div class="mb-3">
+                        <label for="teamName" class="form-label">Team Name</label>
+                        <input type="text" th:field="*{name}" class="form-control" id="teamName" name="name"
+                               required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" id="saveTeamButton" class="btn btn-primary">Save</button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Edit Team Modal -->
-    <div class="modal fade" id="editTeamModal" tabindex="-1" aria-labelledby="editTeamModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editTeamModalLabel">Edit Team</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editTeamForm" th:action="@{/team_update}" method="post">
-                        <input type="hidden" id="editTeamId" name="id">
-                        <label for="editDepartmentId" class="form-label">Department Name</label>
-                        <select class="form-select" id="editDepartmentId" name="department.id" required>
-                            <option value="" disabled>Select a department</option>
-                            <option th:each="department : ${departments}" th:value="${department.id}"
-                                    th:text="${department.name}"></option>
-                        </select>
-                        <div class="mb-3">
-                            <label for="editTeamName" class="form-label">Team Name</label>
-                            <input type="text" class="form-control" id="editTeamName" name="name" required>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" id="updateTeamButton" class="btn btn-primary">Update</button>
-                </div>
+<!-- Edit Team Modal -->
+<div class="modal fade" id="editTeamModal" tabindex="-1" aria-labelledby="editTeamModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTeamModalLabel">Edit Team</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTeamForm" th:action="@{/team_update}" method="post">
+                    <input type="hidden" id="editTeamId" name="id">
+                    <label for="editDepartmentId" class="form-label">Department Name</label>
+                    <select class="form-select" id="editDepartmentId" name="department.id" required>
+                        <option value="" disabled>Select a department</option>
+                        <option th:each="department : ${departments}" th:value="${department.id}"
+                                th:text="${department.name}"></option>
+                    </select>
+                    <div class="mb-3">
+                        <label for="editTeamName" class="form-label">Team Name</label>
+                        <input type="text" class="form-control" id="editTeamName" name="name" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" id="updateTeamButton" class="btn btn-primary">Update</button>
             </div>
         </div>
     </div>
+</div>
 
+<script>
+    // Attach event listeners to all "Edit" buttons
+    document.querySelectorAll('.edit-icon').forEach(button => {
+        button.addEventListener('click', function () {
+            const teamRow = this.closest('tr');
+            const teamId = teamRow.getAttribute('data-id');
+            const teamName = teamRow.querySelector('td:nth-child(2)').textContent;
+            const departmentName = teamRow.querySelector('td:nth-child(3)').textContent;
 
-    <script>
-        // Attach event listeners to all "Edit" buttons
-        document.querySelectorAll('.btn-warning').forEach(button => {
-            button.addEventListener('click', function () {
-                const teamRow = this.closest('tr');
-                const teamId = teamRow.getAttribute('data-id');
-                const teamName = teamRow.querySelector('td:nth-child(2)').textContent;
-                const departmentName = teamRow.querySelector('td:nth-child(3)').textContent;
+            // Populate the modal fields with the current team data
+            document.getElementById('editTeamId').value = teamId;
+            document.getElementById('editTeamName').value = teamName;
+            const departmentDropdown = document.getElementById('editDepartmentId');
 
-                // Populate the modal fields with the current team data
-                document.getElementById('editTeamId').value = teamId;
-                document.getElementById('editTeamName').value = teamName;
-                const departmentDropdown = document.getElementById('editDepartmentId');
-
-                // Set correct department selection
-                Array.from(departmentDropdown.options).forEach(option => {
-                    if (option.textContent.trim() === departmentName.trim()) {
-                        option.selected = true;
-                    }
-                });
+            // Set correct department selection
+            Array.from(departmentDropdown.options).forEach(option => {
+                if (option.textContent.trim() === departmentName.trim()) {
+                    option.selected = true;
+                }
             });
         });
+    });
 
-        // Handle form submission for the "Update" button
-        document.getElementById('updateTeamButton').addEventListener('click', function () {
-            const teamId = document.getElementById('editTeamId').value;
-            if (!teamId) {
-                alert('Team ID is missing!');
-                return;
-            }
-            document.getElementById('editTeamForm').submit();
-        });
+    // Handle form submission for the "Update" button
+    document.getElementById('updateTeamButton').addEventListener('click', function () {
+        const teamId = document.getElementById('editTeamId').value;
+        if (!teamId) {
+            alert('Team ID is missing!');
+            return;
+        }
+        document.getElementById('editTeamForm').submit();
+    });
 
-        // Handle form submission for the "Save" button in the add team form
-        document.getElementById('saveTeamButton').addEventListener('click', function () {
-            document.getElementById('teamForm').submit();
-        });
-    </script>
+    // Handle form submission for the "Save" button in the add team form
+    document.getElementById('saveTeamButton').addEventListener('click', function () {
+        document.getElementById('teamForm').submit();
+    });
+</script>
 
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.EqualsAndHashCode;
 
-
 @Data
 @Entity
 @Table(name = "team")

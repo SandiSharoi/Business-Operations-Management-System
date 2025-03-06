@@ -8,23 +8,15 @@ import com.DAT.capstone_project.model.UsersEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
-import com.DAT.capstone_project.dto.ChangePasswordDTO;
-import com.DAT.capstone_project.dto.ChangePasswordResponse;
 import com.DAT.capstone_project.dto.UsersDTO;  // Updated to use DTO
 import com.DAT.capstone_project.repository.DepartmentRepository;
 import com.DAT.capstone_project.repository.PositionRepository;
 import com.DAT.capstone_project.repository.RoleRepository;
 import com.DAT.capstone_project.repository.TeamRepository;
 import com.DAT.capstone_project.service.AdminService;
-
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
 
-import static org.hibernate.query.sqm.tree.SqmNode.log;
 
 @Controller
 public class AdminController {
@@ -192,7 +184,7 @@ public class AdminController {
         model.addAttribute("roles", roleRepository.findAll());
 
         // Redirect to the user detail page
-        return "users_detail";
+        return "user_edit";
 
     }
 

@@ -13,7 +13,6 @@ import java.util.List;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
-
 @Data
 @Getter
 @Setter
@@ -51,6 +50,5 @@ public class UsersDTO {
     public UsersDTO() {
         this.departmentIds = new ArrayList<>();
     }
-
 
 }
