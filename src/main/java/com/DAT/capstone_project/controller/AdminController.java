@@ -184,7 +184,7 @@ public class AdminController {
         model.addAttribute("roles", roleRepository.findAll());
 
         // Redirect to the user detail page
-        return "users_detail";
+        return "user_edit";
 
     }
 
