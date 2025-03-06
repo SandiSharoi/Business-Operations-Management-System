@@ -300,60 +300,77 @@ public class AdminService {
         userEntity.setEmail(userDTO.getEmail());
         userEntity.setPhone(userDTO.getPhone());
 
+        // **Update Department**
         if (userDTO.getDepartment() != null && userDTO.getDepartment().getId() != null) {
             DepartmentEntity department = departmentRepository.findById(userDTO.getDepartment().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Department not found"));
             userEntity.setDepartment(department);
         }
 
+        // **Update Position**
         if (userDTO.getPosition() != null && userDTO.getPosition().getId() != null) {
             PositionEntity position = positionRepository.findById(userDTO.getPosition().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Position not found"));
             userEntity.setPosition(position);
         }
 
-        if (userDTO.getTeam() != null && userDTO.getTeam().getId() != null) {
-            TeamEntity team = teamRepository.findById(userDTO.getTeam().getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Team not found"));
-            userEntity.setTeam(team);
+        // **CASE 1: Update PM_ID**
+        if ("Project Manager".equals(userEntity.getPosition().getName())) {
+            if (userDTO.getTeam() != null && userDTO.getTeam().getId() != null) {
+                TeamEntity newTeam = teamRepository.findById(userDTO.getTeam().getId())
+                        .orElseThrow(() -> new IllegalArgumentException("Team not found"));
+
+                // **Remove PM from the previous team**
+                teamRepository.clearPmIdFromOtherTeams(userEntity.getId());
+
+                // **Assign PM to the new team**
+                newTeam.setPm(userEntity);
+                userEntity.setTeam(newTeam);
+            }
+        } else {
+            // If user is not a PM, just update the team without changing pm_id
+            if (userDTO.getTeam() != null && userDTO.getTeam().getId() != null) {
+                TeamEntity newTeam = teamRepository.findById(userDTO.getTeam().getId())
+                        .orElseThrow(() -> new IllegalArgumentException("Team not found"));
+                userEntity.setTeam(newTeam);
+            }
         }
 
+        // **Update Role**
         if (userDTO.getRole() != null && userDTO.getRole().getId() != null) {
             RoleEntity role = roleRepository.findById(userDTO.getRole().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Role not found"));
             userEntity.setRole(role);
         }
 
+        // **CASE 2: Update DH_ID**
+        if ("Department Head".equals(userEntity.getPosition().getName())) {
+            if (userDTO.getDepartment() != null && userDTO.getDepartment().getId() != null) {
+                Long departmentId = userDTO.getDepartment().getId().longValue();
+
+                // **Remove DH from other departments**
+                teamRepository.clearDhIdFromOtherDepartments(userEntity.getId(), departmentId);
+
+                // **Assign DH to the new department**
+                teamRepository.assignDhToDepartment(userEntity.getId(), departmentId);
+            }
+        }
+
+        // **CASE 3: Update DIVH_ID**
+        if ("Division Head".equals(userEntity.getPosition().getName())) {
+            if (userDTO.getDepartmentIds() != null) {
+                // **Remove DIVH from other departments**
+                teamRepository.clearDivhIdFromOtherDepartments(userEntity.getId(), userDTO.getDepartmentIds());
+
+                // **Assign DIVH to the new departments**
+                teamRepository.assignDivhToDepartments(userEntity.getId(), userDTO.getDepartmentIds());
+            }
+        }
+
         usersRepository.save(userEntity);
     }
 
 
-    // User details View or Edit or Delete........................................................
-//    public Map<String, Object> getUserDetailsOrEdit(Long id, boolean edit) {
-//        UsersDTO user = getUserById(id);  // Get user details
-//        List<PositionEntity> positions = positionRepository.findAll();
-//        List<TeamEntity> teams = teamRepository.findAll();
-//        List<RoleEntity> roles = roleRepository.findAll();
-//
-//        Map<String, Object> data = new HashMap<>();
-//        data.put("user", user);
-//        data.put("positions", positions);
-//        data.put("teams", teams);
-//        data.put("roles", roles);
-//        data.put("isEditable", edit);
-//
-//        // ✅ If user is a Division Head, fetch associated departments
-//        if (user.getPosition() != null && "Division Head".equals(user.getPosition().getName())) {
-//            List<Integer> departmentIds = teamRepository.findDepartmentIdsByDivhId(user.getId());
-//            user.setDepartmentIds(departmentIds);
-//            data.put("departmentIds", departmentIds);  // Add departmentIds to data
-//        } else {
-//            List<DepartmentEntity> department = departmentRepository.findAll();
-//            data.put("department", department);
-//        }
-//
-//        return data;
-//    }
 
     // User details View or Edit or Delete........................................................
 
@@ -474,11 +491,6 @@ public class AdminService {
 
         return data;
     }
-
-
-
-
-
 
     public void deleteUser(Long id) {
         // Fetch all the teams where the user is referenced as PM, DH, or DivH

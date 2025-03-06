@@ -8,15 +8,42 @@
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <style>
+        .action-icon {
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .edit-icon {
+            color: #ffc107;
+        }
+
+        .delete-icon {
+            color: red;
+        }
+
+        .view-icon {
+            color: blue;
+        }
+
+        .action-icon:hover {
+            transform: scale(1.2);
+        }
+    </style>
+
 </head>
 <body class="bg-light">
 
     <div class="container mt-5 bg-white p-4 rounded shadow-sm">
         <h1 class="text-center mb-4 fs-2 text-dark">Registration List</h1>
 
-        
- 
-        
         
 <!-- Search Inputs -->
 <div class="row mb-4">
@@ -29,9 +56,6 @@
         </form>
     </div>
 </div>
-
-
-
 
         <!-- User Table -->
         <div class="table-responsive">
@@ -56,21 +80,24 @@
                         <td th:text="${user.email}"></td>
 
                         <td>
-<!--                            <a th:href="@{'/user/' + ${user.id} + '?edit=false'}" class="btn btn-primary">View</a>-->
-                            <a th:href="@{'/user/view/' + ${user.id} }" class="btn btn-primary">View</a>
-
-
+                            <a th:href="@{'/user/view/' + ${user.id} }" class="action-icon view-icon">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
                         </td>
 
                         <td>
-<!--                            <a th:href="@{'/user/' + ${user.id} + '?edit=true'}" class="btn btn-warning">Edit</a>-->
-                            <a th:href="@{'/user/edit/' + ${user.id} }" class="btn btn-warning">Edit</a>
+                            <a th:href="@{'/user/edit/' + ${user.id} }" class="action-icon edit-icon">
+                                <i class="fas fa-pencil-alt"></i>
 
+                            </a>
                         </td>   
                         
                         <td>
                             <form th:action="@{/user/delete/{id}(id=${user.id})}" method="post" onsubmit="return confirmDelete()">
-                                <button type="submit" class="btn btn-danger">Delete</button>
+                                <button type="submit" class="action-icon delete-icon">
+                                    <i class="fas fa-trash"></i>
+
+                                </button>
                             </form>
                         </td>
                         
