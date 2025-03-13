@@ -27,13 +27,13 @@ body {
 
 /* Navbar Styles */
 .navbar {
-    background-color: rgba(34, 33, 33, 0.8); 
-    backdrop-filter: blur(5px);
+    background-color: transparent;
+    backdrop-filter: blur(0.5px);
     padding-top: 20px;
 }
 
 .navbar a {
-    color: #fff !important;
+    color: #000 !important;
     font-weight: bold;
     margin-left: 100px;
 }
@@ -41,6 +41,20 @@ body {
 .navbar-brand {
     font-weight: bold;
     font-size: 1.5rem;
+}
+
+/* Footer Styles */
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: transparent;
+    color: black;
+    padding: 10px;
+    text-align: center;
+    margin-top: 30px;
+    font-size: 10px;
 }
 
 /* Hero Section */
@@ -89,6 +103,16 @@ body {
     color: #baa6a6;
 }
 
+/* Ensures entered text in email and password fields is black */
+.login-card .form-control {
+    color: black !important; /* Overrides any inherited color */
+}
+
+/* Placeholder color remains the same */
+.login-card .form-control::placeholder {
+    color: #baa6a6;
+}
+
 /* Focus Effect for input boxes */
 .login-card .form-select:focus, .login-card .form-control:focus {
     box-shadow: 0 0 8px 4px rgba(0, 191, 255, 0.6) !important; /* Glowing effect */
@@ -124,17 +148,3 @@ body {
 
 }
 
-
-
-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: rgba(34, 33, 33, 0.8); 
-    color: white;
-    padding: 10px;
-    text-align: center;
-    margin-top: 30px;
-    font-size: 10px;
-}

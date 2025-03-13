@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.DAT.capstone_project.dto.DepartmentDTO;
+import com.DAT.capstone_project.dto.TeamDTO;
+import com.DAT.capstone_project.model.TeamEntity;
 import com.DAT.capstone_project.model.UsersEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -73,6 +75,12 @@ public class AdminController {
         return adminService.getDepartmentsForPosition(position);
     }
 
+    @GetMapping("/getTeamsByDepartment")
+    @ResponseBody
+    public List<TeamDTO> getTeamsByDepartment(@RequestParam Long departmentId, @RequestParam Integer position) {
+        return adminService.getTeamsByDepartment(departmentId, position);
+    }
+
 
     @PostMapping("/submit_registration")
     public String registerUser(@ModelAttribute("user") UsersDTO usersDTO, Model model) {
@@ -106,8 +114,7 @@ public class AdminController {
         return "user_view"; // Loads user_view.html
     }
 
-// User details Edit .........................................................
-
+    // User details Edit .........................................................
     @GetMapping("/user/edit/{id}")
     public String editUserDetails(@PathVariable Long id, Model model) {
         Map<String, Object> data = adminService.getUserDetailsEdit(id, true); // Edit mode (true)
@@ -133,7 +140,6 @@ public class AdminController {
 
         return "user_edit"; // Loads user_edit.html
     }
-
 
 
     @PostMapping("/user/update/{id}")

@@ -9,8 +9,8 @@
 </head>
 <body>
 <section class="hero-section d-flex justify-content-center align-items-center min-vh-100 bg-light p-4">
-  <div class="card col-lg-8 col-md-10 p-5 rounded-3 shadow-lg" style="background-color:#CCE7C2;">
-    <h1 class="text-center mb-4 fw-bold" style="color: #3D8D7A;">Edit User</h1>
+  <div class="card col-lg-8 col-md-10 p-5 rounded-3 shadow-lg" style="background-color:#CFE2FF;">
+    <h1 class="text-center mb-4 fw-bold" style="color: #4d76b8;">Edit User</h1>
 
     <form th:action="@{'/user/update/' + ${user.id} }" th:object="${user}" method="post">
       <input type="hidden" th:field="*{id}"/>
