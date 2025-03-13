@@ -95,4 +95,12 @@ public interface TeamRepository extends JpaRepository<TeamEntity, Integer>{
     @Query("UPDATE TeamEntity t SET t.divh = (SELECT u FROM UsersEntity u WHERE u.id = :divhId) WHERE t.department.id IN :departmentIds")
     void assignDivhToDepartments(@Param("divhId") Long divhId, @Param("departmentIds") List<Integer> departmentIds);
 
+    @Query("SELECT t.department.id FROM TeamEntity t WHERE t.divh.id = :userId")
+    List<Long> getDivhDepartmentIds(@Param("userId") Long userId);
+
+
+    List<TeamEntity> findByDepartmentId(Long departmentId);
+    List<TeamEntity> findByDepartmentIdAndPmIdIsNull(Long departmentId);
+    List<TeamEntity> findByDepartmentIdAndDhIdIsNull(Long departmentId);
+    List<TeamEntity> findByDepartmentIdAndDivhIdIsNull(Long departmentId);
 }

@@ -1,6 +1,7 @@
 package com.DAT.capstone_project.service;
 
 import com.DAT.capstone_project.dto.DepartmentDTO;
+import com.DAT.capstone_project.dto.TeamDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -157,7 +158,32 @@ public class AdminService {
         return Collections.emptyList(); // Ensures empty list if no valid departments
     }
 
+    public List<TeamDTO> getTeamsByDepartment(Long departmentId, Integer positionId) {
+        // Fetch position name from database using positionId
+        PositionEntity position = positionRepository.findById(positionId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid position ID: " + positionId));
 
+        List<TeamEntity> teams;
+
+        switch (position.getName()) { // Check by position name instead of ID
+            case "Project Manager":
+                teams = teamRepository.findByDepartmentIdAndPmIdIsNull(departmentId);
+                break;
+            case "Department Head":
+                teams = teamRepository.findByDepartmentIdAndDhIdIsNull(departmentId);
+                break;
+            case "Division Head":
+                teams = teamRepository.findByDepartmentIdAndDivhIdIsNull(departmentId);
+                break;
+            default:
+                teams = teamRepository.findByDepartmentId(departmentId);
+                break;
+        }
+
+        return teams.stream()
+                .map(team -> modelMapper.map(team, TeamDTO.class))
+                .collect(Collectors.toList());
+    }
 
     @Transactional
     public String registerUser(UsersDTO usersDTO, Model model) {
@@ -314,21 +340,19 @@ public class AdminService {
             userEntity.setPosition(position);
         }
 
-        // **CASE 1: Update PM_ID**
+        // **CASE 1: Update PM_ID (Fix: Only update if team actually changes)**
         if ("Project Manager".equals(userEntity.getPosition().getName())) {
             if (userDTO.getTeam() != null && userDTO.getTeam().getId() != null) {
                 TeamEntity newTeam = teamRepository.findById(userDTO.getTeam().getId())
                         .orElseThrow(() -> new IllegalArgumentException("Team not found"));
 
-                // **Remove PM from the previous team**
-                teamRepository.clearPmIdFromOtherTeams(userEntity.getId());
-
-                // **Assign PM to the new team**
-                newTeam.setPm(userEntity);
-                userEntity.setTeam(newTeam);
+                if (!newTeam.getId().equals(userEntity.getTeam() != null ? userEntity.getTeam().getId() : null)) {
+                    teamRepository.clearPmIdFromOtherTeams(userEntity.getId());
+                    newTeam.setPm(userEntity);
+                    userEntity.setTeam(newTeam);
+                }
             }
         } else {
-            // If user is not a PM, just update the team without changing pm_id
             if (userDTO.getTeam() != null && userDTO.getTeam().getId() != null) {
                 TeamEntity newTeam = teamRepository.findById(userDTO.getTeam().getId())
                         .orElseThrow(() -> new IllegalArgumentException("Team not found"));
@@ -343,32 +367,50 @@ public class AdminService {
             userEntity.setRole(role);
         }
 
-        // **CASE 2: Update DH_ID**
+        // **CASE 2: Update DH_ID (Fix: Only update if department actually changes)**
         if ("Department Head".equals(userEntity.getPosition().getName())) {
             if (userDTO.getDepartment() != null && userDTO.getDepartment().getId() != null) {
                 Long departmentId = userDTO.getDepartment().getId().longValue();
 
-                // **Remove DH from other departments**
-                teamRepository.clearDhIdFromOtherDepartments(userEntity.getId(), departmentId);
-
-                // **Assign DH to the new department**
-                teamRepository.assignDhToDepartment(userEntity.getId(), departmentId);
+                if (!departmentId.equals(userEntity.getDepartment() != null ? userEntity.getDepartment().getId() : null)) {
+                    teamRepository.clearDhIdFromOtherDepartments(userEntity.getId(), departmentId);
+                    teamRepository.assignDhToDepartment(userEntity.getId(), departmentId);
+                }
             }
         }
 
-        // **CASE 3: Update DIVH_ID**
+// **CASE 3: Update DIVH_ID (Fix: Only update if department list actually changes)**
         if ("Division Head".equals(userEntity.getPosition().getName())) {
             if (userDTO.getDepartmentIds() != null) {
-                // **Remove DIVH from other departments**
-                teamRepository.clearDivhIdFromOtherDepartments(userEntity.getId(), userDTO.getDepartmentIds());
+                List<Long> existingDepartmentIds = teamRepository.getDivhDepartmentIds(userEntity.getId());
 
-                // **Assign DIVH to the new departments**
-                teamRepository.assignDivhToDepartments(userEntity.getId(), userDTO.getDepartmentIds());
+                Set<Long> existingSet = new HashSet<>(existingDepartmentIds);
+                Set<Long> newSet = userDTO.getDepartmentIds().stream()
+                        .map(Integer::longValue) // Convert Integer to Long
+                        .collect(Collectors.toSet());
+
+                // Only proceed if there's a change in assigned departments
+                if (!existingSet.equals(newSet)) {
+                    // Convert Set<Long> back to List<Integer> before passing to repository
+                    List<Integer> newDepartmentIds = newSet.stream()
+                            .map(Long::intValue) // Convert Long back to Integer
+                            .collect(Collectors.toList());
+
+                    // Remove user from previous departments only if there are changes
+                    teamRepository.clearDivhIdFromOtherDepartments(userEntity.getId(), newDepartmentIds);
+
+                    // Assign user to the new departments
+                    teamRepository.assignDivhToDepartments(userEntity.getId(), newDepartmentIds);
+                }
             }
         }
+
+
+
 
         usersRepository.save(userEntity);
     }
+
 
 
 

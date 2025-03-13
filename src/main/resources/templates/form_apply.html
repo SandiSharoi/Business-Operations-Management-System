@@ -29,8 +29,9 @@
 <section class="d-flex justify-content-center align-items-center min-vh-100">
     
     <!-- Form Card -->
-    <div class="card col-lg-8 col-md-10 p-5 rounded-3 shadow-lg" style="background-color:#CCE7C2; color: white;">
-        <h1 class="text-center mb-4 fw-bold text-3d" style="color: #3D8D7A;">Apply for Overtime</h1>
+    <div class="card col-lg-8 col-md-10 p-5 rounded-3 shadow-lg" style="background-color:#CFE2FF; color: white;">
+
+        <h1 class="text-center mb-4 fw-bold text-3d" style="color: #4d76b8;">Apply for Overtime</h1>
 
         <div th:if="${error}" class="alert alert-danger" role="alert">
             <p th:text="${error}"></p>
@@ -174,7 +175,7 @@
             <div class="mb-4 row">
                 <label for="description" class="col-sm-3 col-form-label text-end fw-bold">Description</label>
                 <div class="col-sm-9">
-                    <textarea id="description" th:field="*{description}" class="form-control" rows="4" placeholder="Enter a brief description of the overtime task"></textarea>
+                    <textarea id="description" th:field="*{description}" class="form-control" rows="4" placeholder="Enter a brief description of the overtime task" required></textarea>
                 </div>
             </div>
 
@@ -182,7 +183,7 @@
                 <div class="mb-4 row">
                     <label for="documentFile" class="col-sm-3 col-form-label text-end fw-bold">Document</label>
                     <div class="col-sm-9">
-                        <input type="file" id="documentFile" name="documentFile" required />
+                        <input type="file" id="documentFile" name="documentFile"/>
                     </div>
                 </div>            
 

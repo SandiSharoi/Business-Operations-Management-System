@@ -26,8 +26,8 @@
 <!-- Hero Section -->
 <section class="hero-section d-flex justify-content-center align-items-center min-vh-100  p-4 bg-light">
     <!-- Registration Card -->
-    <div class="card col-lg-8 col-md-10 p-5 rounded-3 shadow-lg" style="background-color:#CCE7C2; color: white;">
-        <h1 class="text-center mb-4 fw-bold text-3d" style="color: #3D8D7A;">Register Now!</h1>
+    <div class="card col-lg-8 col-md-10 p-5 rounded-3 shadow-lg" style="background-color:#CFE2FF; color: white;">
+        <h1 class="text-center mb-4 fw-bold text-3d" style="color: #4d76b8;">Register Now!</h1>
 
 
         <form th:action="@{/submit_registration}" th:object="${user}" method="post">
@@ -39,7 +39,7 @@
             <div class="mb-3">
                 <label for="name" class="form-label fw-bold">Full Name</label>
                 <input type="text" id="name" th:field="*{name}" class="form-control" placeholder="Enter Full Name" required>
-                <div class="text-danger" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+<!--                <div class="text-danger" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>-->
             </div>
 
 
@@ -188,46 +188,57 @@
 
 
 
-    <!--Show Teams according to Department selected -->
-    document.addEventListener("DOMContentLoaded", function () {
-        toggleFields(); // Ensure correct visibility on page load
-        updateRoleOptions(); // Ensure correct roles are shown on page load
+document.addEventListener("DOMContentLoaded", function () {
+    toggleFields(); // Ensure correct visibility on page load
+    updateRoleOptions(); // Ensure correct roles are shown on page load
 
-        var departmentSelect = document.getElementById("department");
-        var teamSelect = document.getElementById("team");
+    var departmentSelect = document.getElementById("department");
+    var teamSelect = document.getElementById("team");
 
-        // Create "No Team Available" option
-        var noTeamOption = document.createElement("option");
-        noTeamOption.value = "";
-        noTeamOption.textContent = "No team under this department";
-        noTeamOption.disabled = true;
-        noTeamOption.hidden = true;
-        teamSelect.appendChild(noTeamOption);
+    // Create "No Team Available" option
+    var noTeamOption = document.createElement("option");
+    noTeamOption.value = "";
+    noTeamOption.textContent = "No team under this department";
+    noTeamOption.disabled = true;
+    noTeamOption.hidden = true;
+    teamSelect.appendChild(noTeamOption);
 
-        departmentSelect.addEventListener("change", function () {
-            var selectedDepartmentId = this.value;
-            var teamOptions = teamSelect.querySelectorAll("option:not(:first-child)");
+    function updateTeamOptions() {
+        let position = document.getElementById("position").value;
+        let departmentId = document.getElementById("department").value;
+        let teamDropdown = document.getElementById("team");
 
-            let teamFound = false;
-            teamOptions.forEach(option => {
-                if (option.value === "") return;
-                if (option.getAttribute("data-department-id") === selectedDepartmentId) {
-                    option.hidden = false;
-                    teamFound = true;
-                } else {
-                    option.hidden = true;
-                }
-            });
+        if (position && departmentId) {
+            fetch(`/getTeamsByDepartment?departmentId=${departmentId}&position=${position}`)
+                .then(response => response.json())
+                .then(data => {
+                    teamDropdown.innerHTML = '<option value="">Select Team</option>';
+                    data.forEach(team => {
+                        let option = document.createElement("option");
+                        option.value = team.id;
+                        option.textContent = team.name;
+                        teamDropdown.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching teams:', error));
+        } else {
+            teamDropdown.innerHTML = '<option value="">Select Team</option>';
+        }
+    }
 
-            noTeamOption.hidden = teamFound;
-            teamSelect.value = "";
-        });
-
-        document.getElementById("position").addEventListener("change", function () {
-            toggleFields();
-            updateRoleOptions();
-        });
+    departmentSelect.addEventListener("change", function () {
+        updateTeamOptions(); // Update teams when department changes
     });
+
+    document.getElementById("position").addEventListener("change", function () {
+        toggleFields();
+        updateRoleOptions();
+        updateTeamOptions(); // Update teams when position changes
+    });
+
+});
+
+
 
 
     //Show Dynamic Departments which has pm_id = null or dh_id = null or divh_id = null according to Approver Position Registration...........................................
@@ -288,7 +299,6 @@
             icon.classList.add("fa-eye-slash");
         }
     });
-
 
 </script>
 
