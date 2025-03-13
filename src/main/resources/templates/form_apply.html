@@ -41,7 +41,7 @@
         
             <!-- Task -->
             <div class="mb-4 row">
-                <label for="task" class="col-sm-3 col-form-label text-end fw-bold">Task</label>
+                <label for="task" class="col-sm-3 col-form-label fw-bold">Task</label>
                 <div class="col-sm-9">
                      <input type="text" id="task" th:field="*{task}" class="form-control" placeholder="Enter Task" required />
 <!--                    <input type="text" id="task" name="task" class="form-control" -->
@@ -52,7 +52,7 @@
 
             <!-- Assign To -->
             <div class="mb-4 row">
-                <label class="col-sm-3 col-form-label text-end fw-bold">Assign To</label>
+                <label class="col-sm-3 col-form-label fw-bold">Assign To</label>
                 <div class="col-sm-9">
                     <div th:each="approver : ${approvers}">
                         <div class="form-check form-check-inline">
@@ -76,7 +76,7 @@
 
             <!-- Planned Date -->
             <div class="mb-4 row">
-                <label for="planned_date" class="col-sm-3 col-form-label text-end fw-bold">Planned Date</label>
+                <label for="planned_date" class="col-sm-3 col-form-label fw-bold">Planned Date</label>
                 <div class="col-sm-9">
                      <input type="date" id="planned_date" th:field="*{plannedDate}" class="form-control" required />
 <!--                    <input type="date" id="planned_date" name="plannedDate" class="form-control" -->
@@ -87,18 +87,18 @@
 
             <!-- Planned Start Hour -->
             <div class="mb-4 row">
-                <label for="planned_start_hour" class="col-sm-3 col-form-label text-end fw-bold">Planned Start Hour</label>
+                <label for="planned_start_hour" class="col-sm-3 col-form-label fw-bold">Planned Start Hour</label>
                 <div class="col-sm-9">
                      <input type="time" id="planned_start_hour" th:field="*{plannedStartHour}" class="form-control" required />
 <!--                    <input type="time" id="planned_start_hour" name="plannedStartHour" class="form-control" -->
 <!--                    th:value="${formApplyDTO.plannedStartHour != null ? formApplyDTO.plannedStartHour : '09:00'}" required />-->
-                    
+
                 </div>
             </div>
 
             <!-- Planned End Hour -->
             <div class="mb-4 row">
-                <label for="planned_end_hour" class="col-sm-3 col-form-label text-end fw-bold">Planned End Hour</label>
+                <label for="planned_end_hour" class="col-sm-3 col-form-label fw-bold">Planned End Hour</label>
                 <div class="col-sm-9">
                      <input type="time" id="planned_end_hour" th:field="*{plannedEndHour}" class="form-control" required />
 <!--                    <input type="time" id="planned_end_hour" name="plannedEndHour" class="form-control" -->
@@ -108,7 +108,7 @@
 
             <!-- Actual Date -->
             <div class="mb-4 row">
-                <label for="actual_date" class="col-sm-3 col-form-label text-end fw-bold">Actual Date</label>
+                <label for="actual_date" class="col-sm-3 col-form-label fw-bold">Actual Date</label>
                 <div class="col-sm-9">
                      <input type="date" id="actual_date" th:field="*{actualDate}" class="form-control" required />
 <!--                    <input type="date" id="actual_date" name="actualDate" class="form-control" -->
@@ -119,7 +119,7 @@
 
             <!-- Actual Start Hour -->
             <div class="mb-4 row">
-                <label for="actual_start_hour" class="col-sm-3 col-form-label text-end fw-bold">Actual Start Hour</label>
+                <label for="actual_start_hour" class="col-sm-3 col-form-label fw-bold">Actual Start Hour</label>
                 <div class="col-sm-9">
                      <input type="time" id="actual_start_hour" th:field="*{actualStartHour}" class="form-control" required />
 <!--                    <input type="time" id="actual_start_hour" name="actualStartHour" class="form-control" -->
@@ -129,7 +129,7 @@
 
             <!-- Actual End Hour -->
             <div class="mb-4 row">
-                <label for="actual_end_hour" class="col-sm-3 col-form-label text-end fw-bold">Actual End Hour</label>
+                <label for="actual_end_hour" class="col-sm-3 col-form-label fw-bold">Actual End Hour</label>
                 <div class="col-sm-9">
                      <input type="time" id="actual_end_hour" th:field="*{actualEndHour}" class="form-control" required />
 <!--                    <input type="time" id="actual_end_hour" name="actualEndHour" class="form-control" -->
@@ -139,18 +139,18 @@
 
             <!-- Overtime Date -->
             <div class="mb-4 row">
-                <label class="col-sm-3 col-form-label text-end fw-bold">Overtime Date</label>
+                <label class="col-sm-3 col-form-label fw-bold">Overtime Date</label>
                 <div class="col-sm-9">
                     <div class="form-check">
-                        <input type="radio" id="weekday" th:field="*{overtimeDate}" value="Weekday" class="form-check-input" />
+                        <input type="radio" id="weekday" th:field="*{overtimeDate}" value="Weekday" class="form-check-input" required/>
                         <label for="weekday" class="form-check-label">Weekday</label>
                     </div>
                     <div class="form-check">
-                        <input type="radio" id="holiday" th:field="*{overtimeDate}" value="Holiday" class="form-check-input" />
+                        <input type="radio" id="holiday" th:field="*{overtimeDate}" value="Holiday" class="form-check-input" required/>
                         <label for="holiday" class="form-check-label">Holiday</label>
                     </div>
                     <div class="form-check">
-                        <input type="radio" id="weekend" th:field="*{overtimeDate}" value="Weekend" class="form-check-input" />
+                        <input type="radio" id="weekend" th:field="*{overtimeDate}" value="Weekend" class="form-check-input" required/>
                         <label for="weekend" class="form-check-label">Weekend</label>
                     </div>
                 </div>
@@ -158,14 +158,14 @@
 
             <!-- Work Type -->
             <div class="mb-4 row">
-                <label class="col-sm-3 col-form-label text-end fw-bold">Work Type</label>
+                <label class="col-sm-3 col-form-label fw-bold">Work Type</label>
                 <div class="col-sm-9">
                     <div class="form-check">
-                        <input type="radio" id="work_from_home" th:field="*{workType}" value="Work From Home" class="form-check-input" />
+                        <input type="radio" id="work_from_home" th:field="*{workType}" value="Work From Home" class="form-check-input" required/>
                         <label for="work_from_home" class="form-check-label">Work From Home</label>
                     </div>
                     <div class="form-check">
-                        <input type="radio" id="work_from_office" th:field="*{workType}" value="Work From Office" class="form-check-input" />
+                        <input type="radio" id="work_from_office" th:field="*{workType}" value="Work From Office" class="form-check-input" required/>
                         <label for="work_from_office" class="form-check-label">Work From Office</label>
                     </div>
                 </div>
@@ -173,7 +173,7 @@
 
             <!-- Description -->
             <div class="mb-4 row">
-                <label for="description" class="col-sm-3 col-form-label text-end fw-bold">Description</label>
+                <label for="description" class="col-sm-3 col-form-label fw-bold">Description</label>
                 <div class="col-sm-9">
                     <textarea id="description" th:field="*{description}" class="form-control" rows="4" placeholder="Enter a brief description of the overtime task" required></textarea>
                 </div>
@@ -181,7 +181,7 @@
 
                 <!-- File Upload Field-->
                 <div class="mb-4 row">
-                    <label for="documentFile" class="col-sm-3 col-form-label text-end fw-bold">Document</label>
+                    <label for="documentFile" class="col-sm-3 col-form-label fw-bold">Document</label>
                     <div class="col-sm-9">
                         <input type="file" id="documentFile" name="documentFile"/>
                     </div>

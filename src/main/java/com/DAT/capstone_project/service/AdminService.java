@@ -165,25 +165,21 @@ public class AdminService {
 
         List<TeamEntity> teams;
 
-        switch (position.getName()) { // Check by position name instead of ID
-            case "Project Manager":
-                teams = teamRepository.findByDepartmentIdAndPmIdIsNull(departmentId);
-                break;
-            case "Department Head":
-                teams = teamRepository.findByDepartmentIdAndDhIdIsNull(departmentId);
-                break;
-            case "Division Head":
-                teams = teamRepository.findByDepartmentIdAndDivhIdIsNull(departmentId);
-                break;
-            default:
-                teams = teamRepository.findByDepartmentId(departmentId);
-                break;
+        if ("Project Manager".equals(position.getName())) {
+            teams = teamRepository.findByDepartmentIdAndPmIdIsNull(departmentId);
+        } else if ("Department Head".equals(position.getName())) {
+            teams = teamRepository.findByDepartmentIdAndDhIdIsNull(departmentId);
+        } else if ("Division Head".equals(position.getName())) {
+            teams = teamRepository.findByDepartmentIdAndDivhIdIsNull(departmentId);
+        } else {
+            teams = teamRepository.findByDepartmentId(departmentId);
         }
 
         return teams.stream()
                 .map(team -> modelMapper.map(team, TeamDTO.class))
                 .collect(Collectors.toList());
     }
+
 
     @Transactional
     public String registerUser(UsersDTO usersDTO, Model model) {

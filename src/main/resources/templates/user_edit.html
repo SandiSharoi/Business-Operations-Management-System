@@ -17,7 +17,7 @@
 
       <!-- Full Name -->
       <div class="mb-3 row">
-        <label class="col-sm-3 col-form-label fw-bold text-end">Full Name</label>
+        <label class="col-sm-3 col-form-label fw-bold ">Full Name</label>
         <div class="col-sm-9">
           <input type="text" th:field="*{name}" class="form-control" required>
         </div>
@@ -25,7 +25,7 @@
 
       <!-- Email Address -->
       <div class="mb-3 row">
-        <label class="col-sm-3 col-form-label fw-bold text-end">Email Address</label>
+        <label class="col-sm-3 col-form-label fw-bold ">Email Address</label>
         <div class="col-sm-9">
           <input type="email" th:field="*{email}" class="form-control" required>
         </div>
@@ -33,7 +33,7 @@
 
       <!-- Phone Number -->
       <div class="mb-3 row">
-        <label class="col-sm-3 col-form-label fw-bold text-end">Phone Number</label>
+        <label class="col-sm-3 col-form-label fw-bold ">Phone Number</label>
         <div class="col-sm-9">
           <input type="text" th:field="*{phone}" class="form-control" required>
         </div>
@@ -41,7 +41,7 @@
 
       <!-- Position (Non-Editable) -->
       <div class="mb-3 row">
-        <label class="col-sm-3 col-form-label fw-bold text-end">Position</label>
+        <label class="col-sm-3 col-form-label fw-bold">Position</label>
         <div class="col-sm-9">
           <input type="text" th:field="${user.position.name}" class="form-control" readonly>
         </div>
@@ -50,7 +50,7 @@
 
       <!-- Single Department Selection -->
       <div class="mb-3 row" th:unless="${user.position.name == 'Division Head'}" id="departmentDiv">
-        <label class="col-sm-3 col-form-label fw-bold text-end">Department</label>
+        <label class="col-sm-3 col-form-label fw-bold ">Department</label>
         <div class="col-sm-9">
           <select id="department" th:field="*{department.id}" class="form-select" required
           >
@@ -70,7 +70,7 @@
 
       <!-- Multi-Department Edit for Division Head -->
       <div class="mb-3 row" th:if="${user.position.name == 'Division Head'}">
-        <label for="multiDepartment" class="col-sm-3 col-form-label fw-bold text-end">Select Departments</label>
+        <label for="multiDepartment" class="col-sm-3 col-form-label fw-bold ">Select Departments</label>
         <div style="flex: 1;">
           <select id="multiDepartment" th:field="*{departmentIds}" class="form-select" multiple>
             <option th:each="dep : ${departments}"
@@ -89,7 +89,7 @@
 
       <!-- Team Selection -->
       <div class="mb-3 row" id="teamDiv" th:if="${user.team != null}">
-        <label class="col-sm-3 col-form-label fw-bold text-end">Team</label>
+        <label class="col-sm-3 col-form-label fw-bold">Team</label>
         <div class="col-sm-9">
           <select id="team" th:field="*{team.id}" class="form-select">
             <option value="" disabled th:selected="${team == null}">Select Team</option>
@@ -104,7 +104,7 @@
 
       <!-- Role (Non-Editable) -->
       <div class="mb-3 row">
-        <label class="col-sm-3 col-form-label fw-bold text-end">Role</label>
+        <label class="col-sm-3 col-form-label fw-bold">Role</label>
         <div class="col-sm-9">
           <input type="text" class="form-control" th:value="${user.role.name}" readonly>
         </div>
