@@ -92,7 +92,7 @@
                      <input type="time" id="planned_start_hour" th:field="*{plannedStartHour}" class="form-control" required />
 <!--                    <input type="time" id="planned_start_hour" name="plannedStartHour" class="form-control" -->
 <!--                    th:value="${formApplyDTO.plannedStartHour != null ? formApplyDTO.plannedStartHour : '09:00'}" required />-->
-                    
+
                 </div>
             </div>
 
@@ -142,15 +142,15 @@
                 <label class="col-sm-3 col-form-label text-end fw-bold">Overtime Date</label>
                 <div class="col-sm-9">
                     <div class="form-check">
-                        <input type="radio" id="weekday" th:field="*{overtimeDate}" value="Weekday" class="form-check-input" />
+                        <input type="radio" id="weekday" th:field="*{overtimeDate}" value="Weekday" class="form-check-input" required/>
                         <label for="weekday" class="form-check-label">Weekday</label>
                     </div>
                     <div class="form-check">
-                        <input type="radio" id="holiday" th:field="*{overtimeDate}" value="Holiday" class="form-check-input" />
+                        <input type="radio" id="holiday" th:field="*{overtimeDate}" value="Holiday" class="form-check-input" required/>
                         <label for="holiday" class="form-check-label">Holiday</label>
                     </div>
                     <div class="form-check">
-                        <input type="radio" id="weekend" th:field="*{overtimeDate}" value="Weekend" class="form-check-input" />
+                        <input type="radio" id="weekend" th:field="*{overtimeDate}" value="Weekend" class="form-check-input" required/>
                         <label for="weekend" class="form-check-label">Weekend</label>
                     </div>
                 </div>
@@ -161,11 +161,11 @@
                 <label class="col-sm-3 col-form-label text-end fw-bold">Work Type</label>
                 <div class="col-sm-9">
                     <div class="form-check">
-                        <input type="radio" id="work_from_home" th:field="*{workType}" value="Work From Home" class="form-check-input" />
+                        <input type="radio" id="work_from_home" th:field="*{workType}" value="Work From Home" class="form-check-input" required/>
                         <label for="work_from_home" class="form-check-label">Work From Home</label>
                     </div>
                     <div class="form-check">
-                        <input type="radio" id="work_from_office" th:field="*{workType}" value="Work From Office" class="form-check-input" />
+                        <input type="radio" id="work_from_office" th:field="*{workType}" value="Work From Office" class="form-check-input" required/>
                         <label for="work_from_office" class="form-check-label">Work From Office</label>
                     </div>
                 </div>
