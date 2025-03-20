@@ -8,6 +8,7 @@ import com.DAT.capstone_project.dto.TeamDTO;
 import com.DAT.capstone_project.model.TeamEntity;
 import com.DAT.capstone_project.model.UsersEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,8 @@ import com.DAT.capstone_project.repository.TeamRepository;
 import com.DAT.capstone_project.service.AdminService;
 import jakarta.servlet.http.HttpSession;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Controller
 public class AdminController {
@@ -114,34 +117,54 @@ public class AdminController {
         return "user_view"; // Loads user_view.html
     }
 
-    // User details Edit .........................................................
+
+    private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
+
     @GetMapping("/user/edit/{id}")
-    public String editUserDetails(@PathVariable Long id, @RequestParam(required = false) String positionName, Model model) {
-        Map<String, Object> data = adminService.getUserDetailsEdit(id, true, positionName); // Pass selected position to service
+    public Object editUserDetails(
+            @PathVariable Long id,
+            @RequestParam(required = false) String positionName,
+            @RequestHeader(value = "X-Requested-With", required = false) String requestedWith,
+            Model model) {
+
+        Map<String, Object> data = adminService.getUserDetailsEdit(id, true, positionName);
+
+        logger.info("First User Edit API called. Position: {}", positionName);
+        logger.info("First eturning data: {}", data);
+
+        // Check if the request is an AJAX request
+        if ("XMLHttpRequest".equals(requestedWith)) {
+            return ResponseEntity.ok(data);
+        }
+
+        // Regular request - load the Thymeleaf page
         model.addAttribute("user", data.get("user"));
         model.addAttribute("positions", data.get("positions"));
         model.addAttribute("teams", data.get("teams"));
         model.addAttribute("roles", data.get("roles"));
+        model.addAttribute("departments", data.get("departments"));
 
-        // ✅ Pass departmentIds for Division Head
-        if (data.containsKey("departmentIds")) {
-            model.addAttribute("departmentIds", data.get("departmentIds"));
-        }
-
-        // ✅ Use the refined list of departments from getUserDetailsEdit
-        if (data.containsKey("departments")) {
-            model.addAttribute("departments", data.get("departments"));
-        }
-
-        // ✅ Pass assigned department IDs for highlighting
         if (data.containsKey("assignedDepartmentIds")) {
             model.addAttribute("assignedDepartmentIds", data.get("assignedDepartmentIds"));
         }
+        if (data.containsKey("assignedTeam")) {
+            model.addAttribute("assignedTeam", data.get("assignedTeam"));
+        }
 
-        return "user_edit"; // Loads user_edit.html
+        logger.info("User Edit API called. Position: {}", positionName);
+        logger.info("Returning data: {}", data);
+
+        return "user_edit";
     }
 
 
+
+    @GetMapping("/user/edit/data/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getUserDetailsData(@PathVariable Long id, @RequestParam(required = false) String positionName) {
+        Map<String, Object> data = adminService.getUserDetailsEdit(id, true, positionName);
+        return ResponseEntity.ok(data);
+    }
 
 
 

@@ -501,9 +501,7 @@ public class AdminService {
             }
         }
 
-//        allDepartments have both assigned and unassigned departments for all position except Division Head.
-//        For Division Head, allDepartments doesn't have assigned departments. For them, they have
-//        assignedDepartmentIds to store assigned departments.
+//        allDepartments have both assigned and unassigned departments for all approver
         data.put("departments", allDepartments);
         data.put("assignedDepartmentIds", assignedDepartmentIds);
 
@@ -528,7 +526,9 @@ public class AdminService {
                     teams.add(assignedTeam); // Highlight this in the dropdown
                 }
                 teams.addAll(unassignedTeams);  // Add unassigned teams to the list for this department
-            }else {
+            }
+
+            else {
                 // Fetch all teams under the department for non approver positions
                 teams.addAll(teamRepository.findByDepartmentId(deptId));
             }
