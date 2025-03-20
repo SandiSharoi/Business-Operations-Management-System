@@ -7,6 +7,7 @@ import com.DAT.capstone_project.dto.DepartmentDTO;
 import com.DAT.capstone_project.dto.TeamDTO;
 import com.DAT.capstone_project.model.TeamEntity;
 import com.DAT.capstone_project.model.UsersEntity;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -121,11 +122,9 @@ public class AdminController {
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
     @GetMapping("/user/edit/{id}")
-    public Object editUserDetails(
-            @PathVariable Long id,
-            @RequestParam(required = false) String positionName,
-            @RequestHeader(value = "X-Requested-With", required = false) String requestedWith,
-            Model model) {
+    public Object editUserDetails( @PathVariable Long id, @RequestParam(required = false) String positionName,
+                                   @RequestHeader(value = "X-Requested-With", required = false) String requestedWith,
+                                   Model model) {
 
         Map<String, Object> data = adminService.getUserDetailsEdit(id, true, positionName);
 
@@ -153,6 +152,14 @@ public class AdminController {
 
         logger.info("User Edit API called. Position: {}", positionName);
         logger.info("Returning data: {}", data);
+
+        // 🔍 **Log the JSON to check for serialization issues**
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            logger.info("Final JSON: {}", objectMapper.writeValueAsString(data));
+        } catch (Exception e) {
+            logger.error("Error serializing JSON", e);
+        }
 
         return "user_edit";
     }

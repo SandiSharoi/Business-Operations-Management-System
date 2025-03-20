@@ -1,9 +1,9 @@
 package com.DAT.capstone_project.dto;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -31,6 +31,7 @@ public class UsersDTO {
 
     private PositionDTO position;
 
+    @JsonBackReference // Prevent recursive serialization of the team field in UsersDTO
     @ToString.Exclude
     private TeamDTO team;
 

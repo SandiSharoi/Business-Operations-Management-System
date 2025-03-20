@@ -1,5 +1,6 @@
 package com.DAT.capstone_project.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.EqualsAndHashCode;
@@ -23,16 +24,19 @@ public class TeamEntity {
     @JoinColumn(name = "department_id", nullable = false) // This maps the department_id column to the Team entity
     private DepartmentEntity department;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "pm_id")
     @ToString.Exclude
     private UsersEntity pm;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "dh_id")
     @ToString.Exclude
     private UsersEntity dh;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "divh_id")
     @ToString.Exclude
