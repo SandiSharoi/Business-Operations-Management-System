@@ -129,84 +129,52 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+
+  <!--Show Team, Department, Multi Departments fields according to position..........................................................-->
   document.addEventListener("DOMContentLoaded", function () {
-      let positionField = document.getElementById("position");
-      let teamDiv = document.getElementById("teamDiv");
-      let departmentDiv = document.getElementById("departmentDiv");
-      let multiDepartmentDiv = document.getElementById("multiDepartmentDiv");
+    let positionField = document.getElementById("position");
+    let teamDiv = document.getElementById("teamDiv");
+    let departmentDiv = document.getElementById("departmentDiv");
+    let multiDepartmentDiv = document.getElementById("multiDepartmentDiv");
 
-      function toggleFields() {
-          let selectedOption = positionField.options[positionField.selectedIndex];
-          let positionName = selectedOption.getAttribute("data-name");
+    function toggleFields() {
+        let selectedOption = positionField.options[positionField.selectedIndex];
+        let positionName = selectedOption.getAttribute("data-name");
 
-          // Reset styles for all fields
-          teamDiv.style.visibility = "hidden";
-          departmentDiv.style.visibility = "hidden";
-          teamDiv.style.height = "0px";
-          departmentDiv.style.height = "0px";
+        // Reset styles for all fields
+        teamDiv.style.visibility = "hidden";
+        departmentDiv.style.visibility = "hidden";
+        teamDiv.style.height = "0px";
+        departmentDiv.style.height = "0px";
 
-          // Special handling for multiDepartmentDiv
-          multiDepartmentDiv.style.display = "none"; // Fully hides it when not needed
+        // Special handling for multiDepartmentDiv
+        multiDepartmentDiv.style.display = "none"; // Fully hides it when not needed
 
-          // Show fields while keeping layout intact
-          if (positionName === "Department Head") {
-              departmentDiv.style.visibility = "visible";
-              departmentDiv.style.height = "auto";
-          } else if (positionName === "Division Head") {
-              multiDepartmentDiv.style.display = "flex"; // Ensure visibility for multiDepartmentDiv
-          } else {
-              teamDiv.style.visibility = "visible";
-              teamDiv.style.height = "auto";
-              departmentDiv.style.visibility = "visible";
-              departmentDiv.style.height = "auto";
-          }
-      }
+        // Show fields while keeping layout intact
+        if (positionName === "Department Head") {
+            departmentDiv.style.visibility = "visible";
+            departmentDiv.style.height = "auto";
+        } else if (positionName === "Division Head") {
+            multiDepartmentDiv.style.display = "flex"; // Ensure visibility for multiDepartmentDiv
+        } else {
+            teamDiv.style.visibility = "visible";
+            teamDiv.style.height = "auto";
+            departmentDiv.style.visibility = "visible";
+            departmentDiv.style.height = "auto";
+        }
+    }
 
-      // Ensure correct fields are shown on first load
-      toggleFields();
+    // Ensure correct fields are shown on first load
+    toggleFields();
 
-      // Add event listener for position change
-      positionField.addEventListener("change", function () {
-          toggleFields();
-      });
-  });
-
-
-      <!--Show Teams according to Department selected............................................ -->
-      document.addEventListener("DOMContentLoaded", function () {
+    // Add event listener for position change
+    positionField.addEventListener("change", function () {
+        toggleFields();
+    });
+});
 
 
-      var departmentSelect = document.getElementById("department");
-      var teamSelect = document.getElementById("team");
 
-      // Create "No Team Available" option
-      var noTeamOption = document.createElement("option");
-      noTeamOption.value = "";
-      noTeamOption.textContent = "No team under this department";
-      noTeamOption.disabled = true;
-      noTeamOption.hidden = true;
-      teamSelect.appendChild(noTeamOption);
-
-      departmentSelect.addEventListener("change", function () {
-      var selectedDepartmentId = this.value;
-      var teamOptions = teamSelect.querySelectorAll("option:not(:first-child)");
-
-      let teamFound = false;
-      teamOptions.forEach(option => {
-      if (option.value === "") return;
-      if (option.getAttribute("data-department-id") === selectedDepartmentId) {
-       option.hidden = false;
-       teamFound = true;
-      } else {
-       option.hidden = true;
-      }
-      });
-
-      noTeamOption.hidden = teamFound;
-      teamSelect.value = "";
-      });
-
-      });
 
 
 </script>

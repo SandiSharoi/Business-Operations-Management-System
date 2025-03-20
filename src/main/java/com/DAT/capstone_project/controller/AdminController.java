@@ -116,8 +116,8 @@ public class AdminController {
 
     // User details Edit .........................................................
     @GetMapping("/user/edit/{id}")
-    public String editUserDetails(@PathVariable Long id, Model model) {
-        Map<String, Object> data = adminService.getUserDetailsEdit(id, true); // Edit mode (true)
+    public String editUserDetails(@PathVariable Long id, @RequestParam(required = false) String positionName, Model model) {
+        Map<String, Object> data = adminService.getUserDetailsEdit(id, true, positionName); // Pass selected position to service
         model.addAttribute("user", data.get("user"));
         model.addAttribute("positions", data.get("positions"));
         model.addAttribute("teams", data.get("teams"));
@@ -140,6 +140,9 @@ public class AdminController {
 
         return "user_edit"; // Loads user_edit.html
     }
+
+
+
 
 
     @PostMapping("/user/update/{id}")

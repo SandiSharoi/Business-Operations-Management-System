@@ -438,7 +438,7 @@ public class AdminService {
         return data;
     }
 
-    public Map<String, Object> getUserDetailsEdit(Long id, boolean edit) {
+    public Map<String, Object> getUserDetailsEdit(Long id, boolean edit, String positionName) {
         UsersDTO user = getUserById(id); // Fetch user details from DB
         List<PositionEntity> positions = positionRepository.findAll();
         List<RoleEntity> roles = roleRepository.findAll();
@@ -459,12 +459,16 @@ public class AdminService {
             userDepartmentIds.addAll(user.getDepartmentIds());
         }
 
-        // Fetch unassigned and assigned departments for Division Head
-        boolean isPm = "Project Manager".equals(user.getPosition().getName());
-        boolean isDh = "Department Head".equals(user.getPosition().getName());
-        boolean isDivh = "Division Head".equals(user.getPosition().getName());
+        // Use the selected positionName instead of the user's original position if provided
+        if (positionName == null) {
+            positionName = user.getPosition() != null ? user.getPosition().getName() : "";
+        }
 
-        if (user.getPosition() != null) {
+        boolean isPm = "Project Manager".equals(positionName);
+        boolean isDh = "Department Head".equals(positionName);
+        boolean isDivh = "Division Head".equals(positionName);
+
+        if (positionName != null) {
             if (isPm) {
                 unassignedDepartmentIds = teamRepository.findDepartmentIdsWherePmIsNull();
             } else if (isDh) {
@@ -484,25 +488,34 @@ public class AdminService {
         Set<Integer> finalDepartmentIds = new HashSet<>(unassignedDepartmentIds);
         finalDepartmentIds.addAll(userDepartmentIds);
 
-        if (allDepartments.isEmpty()) { // Fetch departments if not already retrieved
+//        allDepartments is empty means there are ids in finalDepartmentIds for approvers
+        if (allDepartments.isEmpty()) {
             allDepartments = departmentRepository.findByIdIn(new ArrayList<>(finalDepartmentIds));
-        } else {
-            // If all departments were fetched, ensure we use their IDs to fetch teams
+        }
+//        allDepartments is not empty means there is nothing in finalDepartmentIds. So add
+//        all departments in finalDepartmentIds for non approver positions
+        else {
             finalDepartmentIds.clear();
             for (DepartmentEntity dept : allDepartments) {
                 finalDepartmentIds.add(dept.getId());
             }
         }
 
+//        allDepartments have both assigned and unassigned departments for all position except Division Head.
+//        For Division Head, allDepartments doesn't have assigned departments. For them, they have
+//        assignedDepartmentIds to store assigned departments.
         data.put("departments", allDepartments);
-        data.put("assignedDepartmentIds", assignedDepartmentIds); // Pass assigned departments explicitly
+        data.put("assignedDepartmentIds", assignedDepartmentIds);
 
-
-        // Fetch teams for the selected department(s)
+        // Fetch teams for the selected department(s) for PM and non approver positions
         List<TeamEntity> teams = new ArrayList<>();
-        TeamEntity assignedTeam = null; // To store the currently assigned team for the PM
+
+        // To store the currently assigned team for the PM
+        TeamEntity assignedTeam = null;
 
         for (Integer deptId : finalDepartmentIds) {
+
+//If user position is Project Manager,
             if (isPm) {
                 // Fetch the PM's currently assigned team (if any) for the department
                 assignedTeam = teamRepository.findTeamByPmIdAndDeptId(user.getId(), deptId);
@@ -514,13 +527,9 @@ public class AdminService {
                 if (assignedTeam != null) {
                     teams.add(assignedTeam); // Highlight this in the dropdown
                 }
-                teams.addAll(unassignedTeams); // Add unassigned teams to the list for this department
-            } else if (isDh) {
-                teams.addAll(teamRepository.findTeamsWithUnassignedDh(deptId));
-            } else if (isDivh) {
-                teams.addAll(teamRepository.findTeamsWithUnassignedDivh(deptId));
-            } else {
-                // Fetch all teams under the department for other positions
+                teams.addAll(unassignedTeams);  // Add unassigned teams to the list for this department
+            }else {
+                // Fetch all teams under the department for non approver positions
                 teams.addAll(teamRepository.findByDepartmentId(deptId));
             }
         }
@@ -529,6 +538,8 @@ public class AdminService {
 
         return data;
     }
+
+
 
     public void deleteUser(Long id) {
         // Fetch all the teams where the user is referenced as PM, DH, or DivH

@@ -74,7 +74,7 @@ public class DataInitializer implements CommandLineRunner {
                 UsersEntity admin = new UsersEntity();
                 admin.setName("Admin User");
                 admin.setEmail("admin@dat.com");
-                String hashedPassword = passwordEncoder.encode("@dminPwd123");
+                String hashedPassword = passwordEncoder.encode("Dat0@123");
                 admin.setPassword(hashedPassword);
                 admin.setPhone("1234567890");
                 admin.setRole(adminRole);
