@@ -143,6 +143,10 @@ public class AdminController {
         model.addAttribute("roles", data.get("roles"));
         model.addAttribute("departments", data.get("departments"));
 
+        if (data.containsKey("assignedDepartmentId")) {
+            model.addAttribute("assignedDepartmentId", data.get("assignedDepartmentId"));
+        }
+
         if (data.containsKey("assignedDepartmentIds")) {
             model.addAttribute("assignedDepartmentIds", data.get("assignedDepartmentIds"));
         }

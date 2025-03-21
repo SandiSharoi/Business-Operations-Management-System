@@ -443,21 +443,12 @@ public class AdminService {
         List<PositionEntity> positions = positionRepository.findAll();
         List<RoleEntity> roles = roleRepository.findAll();
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("user", user);
-        data.put("positions", positions);
-        data.put("roles", roles);
 
         List<Integer> unassignedDepartmentIds = new ArrayList<>();
-        List<Integer> userDepartmentIds = new ArrayList<>();
+        Integer assignedDepartmentId = null;
         List<Integer> assignedDepartmentIds = new ArrayList<>();
         List<DepartmentEntity> allDepartments = new ArrayList<>();
 
-        if (user.getDepartment() != null) {
-            userDepartmentIds.add(user.getDepartment().getId());
-        } else if (user.getDepartmentIds() != null) {
-            userDepartmentIds.addAll(user.getDepartmentIds());
-        }
 
         // Use the selected positionName instead of the user's original position if provided
         if (positionName == null) {
@@ -471,22 +462,36 @@ public class AdminService {
         if (positionName != null) {
             if (isPm) {
                 unassignedDepartmentIds = teamRepository.findDepartmentIdsWherePmIsNull();
+                if (user.getPosition() != null && user.getPosition().getName().equals(positionName)) {
+                    if (user.getDepartment() != null) {
+                        assignedDepartmentId = user.getDepartment().getId();
+                    }
+                }
             } else if (isDh) {
                 unassignedDepartmentIds = teamRepository.findDepartmentIdsWhereDhIsNull();
+                if (user.getPosition() != null && user.getPosition().getName().equals(positionName)) {
+                    if (user.getDepartment() != null) {
+                        assignedDepartmentId = user.getDepartment().getId();
+                    }
+                }
             } else if (isDivh) {
                 unassignedDepartmentIds = teamRepository.findDepartmentIdsWhereDivhIsNull();
-                assignedDepartmentIds = teamRepository.findDepartmentIdsByDivhId(user.getId()); // Assigned departments
-
-                userDepartmentIds.addAll(assignedDepartmentIds);
+                assignedDepartmentIds = teamRepository.findDepartmentIdsByDivhId(user.getId());
             } else {
-                // Fetch all departments for positions that are neither PM, DH, nor DivH
                 allDepartments = departmentRepository.findAllByOrderByIdAsc();
             }
         }
 
-        // Combine department IDs to ensure original department(s) are included
+
+        // Combine unassigned and assigned department IDs
         Set<Integer> finalDepartmentIds = new HashSet<>(unassignedDepartmentIds);
-        finalDepartmentIds.addAll(userDepartmentIds);
+
+        if (assignedDepartmentId != null) {
+            finalDepartmentIds.add(assignedDepartmentId);
+        }   else {
+            finalDepartmentIds.addAll(assignedDepartmentIds);
+        }
+
 
 //        allDepartments is empty means there are ids in finalDepartmentIds for approvers
         if (allDepartments.isEmpty()) {
@@ -501,9 +506,6 @@ public class AdminService {
             }
         }
 
-//        allDepartments have both assigned and unassigned departments for all approver
-        data.put("departments", allDepartments);
-        data.put("assignedDepartmentIds", assignedDepartmentIds);
 
         // Fetch teams for the selected department(s) for PM and non approver positions
         List<TeamEntity> teams = new ArrayList<>();
@@ -511,33 +513,49 @@ public class AdminService {
         // To store the currently assigned team for the PM
         TeamEntity assignedTeam = null;
 
-        for (Integer deptId : finalDepartmentIds) {
+        if (isPm) {
+            assignedTeam = teamRepository.findByDepartmentId(assignedDepartmentId)
+                    .stream()
+                    .filter(team -> team.getPm() != null && team.getPm().getId().equals(user.getId()))
+                    .findFirst()
+                    .orElse(null);
 
-//If user position is Project Manager,
-            if (isPm) {
-                // Fetch the PM's currently assigned team (if any) for the department
-                assignedTeam = teamRepository.findTeamByPmIdAndDeptId(user.getId(), deptId);
-
-                // Only fetch unassigned teams in the selected department (with pm_id = null)
-                List<TeamEntity> unassignedTeams = teamRepository.findTeamsWithUnassignedPm(deptId);
-
-                // Add the assigned team first (if exists), then add unassigned teams
-                if (assignedTeam != null) {
-                    teams.add(assignedTeam); // Highlight this in the dropdown
-                }
-                teams.addAll(unassignedTeams);  // Add unassigned teams to the list for this department
+            List<TeamEntity> unassignedTeams = new ArrayList<>();
+            for (Integer deptId : finalDepartmentIds) {
+                unassignedTeams.addAll(teamRepository.findTeamsWithUnassignedPm(deptId));
             }
 
-            else {
+            if (assignedTeam != null) {
+                teams.add(assignedTeam);
+            }
+            teams.addAll(unassignedTeams);
+        }
+
+        else {
+            for (Integer deptId : finalDepartmentIds) {
+
                 // Fetch all teams under the department for non approver positions
                 teams.addAll(teamRepository.findByDepartmentId(deptId));
             }
         }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("user", user);
+        data.put("positions", positions);
+        data.put("roles", roles);
+
+//        allDepartments have both assigned and unassigned departments for all approver
+        data.put("departments", allDepartments);
+        data.put("assignedDepartmentId", assignedDepartmentId);
+        data.put("assignedDepartmentIds", assignedDepartmentIds);
+
         data.put("teams", teams);
-        data.put("assignedTeam", assignedTeam); // Add the assigned team to the data map
+        data.put("assignedTeam", assignedTeam);
+
 
         return data;
     }
+
 
 
 
