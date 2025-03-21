@@ -1,5 +1,6 @@
 package com.DAT.capstone_project.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
@@ -31,6 +32,7 @@ public class UsersEntity {
     @ToString.Exclude
     private PositionEntity position;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "team_id")
     @ToString.Exclude

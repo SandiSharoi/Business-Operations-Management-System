@@ -165,25 +165,21 @@ public class AdminService {
 
         List<TeamEntity> teams;
 
-        switch (position.getName()) { // Check by position name instead of ID
-            case "Project Manager":
-                teams = teamRepository.findByDepartmentIdAndPmIdIsNull(departmentId);
-                break;
-            case "Department Head":
-                teams = teamRepository.findByDepartmentIdAndDhIdIsNull(departmentId);
-                break;
-            case "Division Head":
-                teams = teamRepository.findByDepartmentIdAndDivhIdIsNull(departmentId);
-                break;
-            default:
-                teams = teamRepository.findByDepartmentId(departmentId);
-                break;
+        if ("Project Manager".equals(position.getName())) {
+            teams = teamRepository.findByDepartmentIdAndPmIdIsNull(departmentId);
+        } else if ("Department Head".equals(position.getName())) {
+            teams = teamRepository.findByDepartmentIdAndDhIdIsNull(departmentId);
+        } else if ("Division Head".equals(position.getName())) {
+            teams = teamRepository.findByDepartmentIdAndDivhIdIsNull(departmentId);
+        } else {
+            teams = teamRepository.findByDepartmentId(departmentId);
         }
 
         return teams.stream()
                 .map(team -> modelMapper.map(team, TeamDTO.class))
                 .collect(Collectors.toList());
     }
+
 
     @Transactional
     public String registerUser(UsersDTO usersDTO, Model model) {
@@ -442,94 +438,124 @@ public class AdminService {
         return data;
     }
 
-    public Map<String, Object> getUserDetailsEdit(Long id, boolean edit) {
+    public Map<String, Object> getUserDetailsEdit(Long id, boolean edit, String positionName) {
         UsersDTO user = getUserById(id); // Fetch user details from DB
         List<PositionEntity> positions = positionRepository.findAll();
         List<RoleEntity> roles = roleRepository.findAll();
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("user", user);
-        data.put("positions", positions);
-        data.put("roles", roles);
 
         List<Integer> unassignedDepartmentIds = new ArrayList<>();
-        List<Integer> userDepartmentIds = new ArrayList<>();
+        Integer assignedDepartmentId = null;
         List<Integer> assignedDepartmentIds = new ArrayList<>();
         List<DepartmentEntity> allDepartments = new ArrayList<>();
 
-        if (user.getDepartment() != null) {
-            userDepartmentIds.add(user.getDepartment().getId());
-        } else if (user.getDepartmentIds() != null) {
-            userDepartmentIds.addAll(user.getDepartmentIds());
+
+        // Use the selected positionName instead of the user's original position if provided
+        if (positionName == null) {
+            positionName = user.getPosition() != null ? user.getPosition().getName() : "";
         }
 
-        // Fetch unassigned and assigned departments for Division Head
-        boolean isPm = "Project Manager".equals(user.getPosition().getName());
-        boolean isDh = "Department Head".equals(user.getPosition().getName());
-        boolean isDivh = "Division Head".equals(user.getPosition().getName());
+        boolean isPm = "Project Manager".equals(positionName);
+        boolean isDh = "Department Head".equals(positionName);
+        boolean isDivh = "Division Head".equals(positionName);
 
-        if (user.getPosition() != null) {
+        if (positionName != null) {
             if (isPm) {
                 unassignedDepartmentIds = teamRepository.findDepartmentIdsWherePmIsNull();
+                if (user.getPosition() != null && user.getPosition().getName().equals(positionName)) {
+                    if (user.getDepartment() != null) {
+                        assignedDepartmentId = user.getDepartment().getId();
+                    }
+                }
             } else if (isDh) {
                 unassignedDepartmentIds = teamRepository.findDepartmentIdsWhereDhIsNull();
+                if (user.getPosition() != null && user.getPosition().getName().equals(positionName)) {
+                    if (user.getDepartment() != null) {
+                        assignedDepartmentId = user.getDepartment().getId();
+                    }
+                }
             } else if (isDivh) {
                 unassignedDepartmentIds = teamRepository.findDepartmentIdsWhereDivhIsNull();
-                assignedDepartmentIds = teamRepository.findDepartmentIdsByDivhId(user.getId()); // Assigned departments
-
-                userDepartmentIds.addAll(assignedDepartmentIds);
+                assignedDepartmentIds = teamRepository.findDepartmentIdsByDivhId(user.getId());
             } else {
-                // Fetch all departments for positions that are neither PM, DH, nor DivH
                 allDepartments = departmentRepository.findAllByOrderByIdAsc();
             }
         }
 
-        // Combine department IDs to ensure original department(s) are included
-        Set<Integer> finalDepartmentIds = new HashSet<>(unassignedDepartmentIds);
-        finalDepartmentIds.addAll(userDepartmentIds);
 
-        if (allDepartments.isEmpty()) { // Fetch departments if not already retrieved
+        // Combine unassigned and assigned department IDs
+        Set<Integer> finalDepartmentIds = new HashSet<>(unassignedDepartmentIds);
+
+        if (assignedDepartmentId != null) {
+            finalDepartmentIds.add(assignedDepartmentId);
+        }   else {
+            finalDepartmentIds.addAll(assignedDepartmentIds);
+        }
+
+
+//        allDepartments is empty means there are ids in finalDepartmentIds for approvers
+        if (allDepartments.isEmpty()) {
             allDepartments = departmentRepository.findByIdIn(new ArrayList<>(finalDepartmentIds));
-        } else {
-            // If all departments were fetched, ensure we use their IDs to fetch teams
+        }
+//        allDepartments is not empty means there is nothing in finalDepartmentIds. So add
+//        all departments in finalDepartmentIds for non approver positions
+        else {
             finalDepartmentIds.clear();
             for (DepartmentEntity dept : allDepartments) {
                 finalDepartmentIds.add(dept.getId());
             }
         }
 
-        data.put("departments", allDepartments);
-        data.put("assignedDepartmentIds", assignedDepartmentIds); // Pass assigned departments explicitly
 
-
-        // Fetch teams for the selected department(s)
+        // Fetch teams for the selected department(s) for PM and non approver positions
         List<TeamEntity> teams = new ArrayList<>();
-        TeamEntity assignedTeam = null; // To store the currently assigned team for the PM
 
-        for (Integer deptId : finalDepartmentIds) {
-            if (isPm) {
-                // Fetch the PM's currently assigned team (if any) for the department
-                assignedTeam = teamRepository.findTeamByPmIdAndDeptId(user.getId(), deptId);
+        // To store the currently assigned team for the PM
+        TeamEntity assignedTeam = null;
 
-                // Only fetch unassigned teams in the selected department (with pm_id = null)
-                List<TeamEntity> unassignedTeams = teamRepository.findTeamsWithUnassignedPm(deptId);
+        if (isPm) {
+            assignedTeam = teamRepository.findByDepartmentId(assignedDepartmentId)
+                    .stream()
+                    .filter(team -> team.getPm() != null && team.getPm().getId().equals(user.getId()))
+                    .findFirst()
+                    .orElse(null);
 
-                // Add the assigned team first (if exists), then add unassigned teams
-                if (assignedTeam != null) {
-                    teams.add(assignedTeam); // Highlight this in the dropdown
-                }
-                teams.addAll(unassignedTeams); // Add unassigned teams to the list for this department
-            } else if (isDh) {
-                teams.addAll(teamRepository.findTeamsWithUnassignedDh(deptId));
-            } else if (isDivh) {
-                teams.addAll(teamRepository.findTeamsWithUnassignedDivh(deptId));
-            } else {
-                // Fetch all teams under the department for other positions
+            List<TeamEntity> unassignedTeams = new ArrayList<>();
+            for (Integer deptId : finalDepartmentIds) {
+                unassignedTeams.addAll(teamRepository.findTeamsWithUnassignedPm(deptId));
+            }
+
+            if (assignedTeam != null) {
+                teams.add(assignedTeam);
+            }
+            teams.addAll(unassignedTeams);
+        }
+
+        else {
+            for (Integer deptId : finalDepartmentIds) {
+
+                // Fetch all teams under the department for non approver positions
                 teams.addAll(teamRepository.findByDepartmentId(deptId));
             }
         }
+
+//        Integer assignedTeamId = assignedTeam.getId();
+
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("user", user);
+        data.put("positions", positions);
+        data.put("roles", roles);
+
+//        allDepartments have both assigned and unassigned departments for all approver
+        data.put("departments", allDepartments);
+        data.put("assignedDepartmentId", assignedDepartmentId);
+        data.put("assignedDepartmentIds", assignedDepartmentIds);
+
         data.put("teams", teams);
-        data.put("assignedTeam", assignedTeam); // Add the assigned team to the data map
+        data.put("assignedTeam", assignedTeam);
+//        data.put("assignedTeamId", assignedTeamId);
+
 
         // ✅ If user is a Division Head, fetch associated departments
         if (user.getPosition() != null && "Division Head".equals(user.getPosition().getName())) {
@@ -543,6 +569,9 @@ public class AdminService {
 
         return data;
     }
+
+
+
 
     public void deleteUser(Long id) {
         // Fetch all the teams where the user is referenced as PM, DH, or DivH

@@ -7,7 +7,9 @@ import com.DAT.capstone_project.dto.DepartmentDTO;
 import com.DAT.capstone_project.dto.TeamDTO;
 import com.DAT.capstone_project.model.TeamEntity;
 import com.DAT.capstone_project.model.UsersEntity;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +21,8 @@ import com.DAT.capstone_project.repository.TeamRepository;
 import com.DAT.capstone_project.service.AdminService;
 import jakarta.servlet.http.HttpSession;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Controller
 public class AdminController {
@@ -114,32 +118,70 @@ public class AdminController {
         return "user_view"; // Loads user_view.html
     }
 
-    // User details Edit .........................................................
+
+    private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
+
     @GetMapping("/user/edit/{id}")
-    public String editUserDetails(@PathVariable Long id, Model model) {
-        Map<String, Object> data = adminService.getUserDetailsEdit(id, true); // Edit mode (true)
+    public Object editUserDetails( @PathVariable Long id, @RequestParam(required = false) String positionName,
+                                   @RequestHeader(value = "X-Requested-With", required = false) String requestedWith,
+                                   Model model) {
+
+        Map<String, Object> data = adminService.getUserDetailsEdit(id, true, positionName);
+
+        logger.info("First User Edit API called. Position: {}", positionName);
+        logger.info("First eturning data: {}", data);
+
+        // Check if the request is an AJAX request
+        if ("XMLHttpRequest".equals(requestedWith)) {
+            return ResponseEntity.ok(data);
+        }
+
+        // Regular request - load the Thymeleaf page
         model.addAttribute("user", data.get("user"));
         model.addAttribute("positions", data.get("positions"));
         model.addAttribute("teams", data.get("teams"));
         model.addAttribute("roles", data.get("roles"));
+        model.addAttribute("departments", data.get("departments"));
 
-        // ✅ Pass departmentIds for Division Head
-        if (data.containsKey("departmentIds")) {
-            model.addAttribute("departmentIds", data.get("departmentIds"));
+        if (data.containsKey("assignedDepartmentId")) {
+            model.addAttribute("assignedDepartmentId", data.get("assignedDepartmentId"));
         }
 
-        // ✅ Use the refined list of departments from getUserDetailsEdit
-        if (data.containsKey("departments")) {
-            model.addAttribute("departments", data.get("departments"));
-        }
-
-        // ✅ Pass assigned department IDs for highlighting
         if (data.containsKey("assignedDepartmentIds")) {
             model.addAttribute("assignedDepartmentIds", data.get("assignedDepartmentIds"));
         }
 
-        return "user_edit"; // Loads user_edit.html
+        if (data.containsKey("assignedTeam")) {
+            model.addAttribute("assignedTeam", data.get("assignedTeam"));
+        }
+
+//        if (data.containsKey("assignedTeamId")) {
+//            model.addAttribute("assignedTeamId", data.get("assignedTeamId"));
+//        }
+
+        logger.info("User Edit API called. Position: {}", positionName);
+        logger.info("Returning data: {}", data);
+
+        // 🔍 **Log the JSON to check for serialization issues**
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            logger.info("Final JSON: {}", objectMapper.writeValueAsString(data));
+        } catch (Exception e) {
+            logger.error("Error serializing JSON", e);
+        }
+
+        return "user_edit";
     }
+
+
+
+    @GetMapping("/user/edit/data/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getUserDetailsData(@PathVariable Long id, @RequestParam(required = false) String positionName) {
+        Map<String, Object> data = adminService.getUserDetailsEdit(id, true, positionName);
+        return ResponseEntity.ok(data);
+    }
+
 
 
     @PostMapping("/user/update/{id}")

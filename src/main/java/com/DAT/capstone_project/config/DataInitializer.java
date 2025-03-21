@@ -60,7 +60,7 @@ public class DataInitializer implements CommandLineRunner {
         // Insert Team
         if (teamRepository.count() == 0) {
             DepartmentEntity department = departmentRepository.findAll().get(0);
-            teamRepository.saveAll(List.of(new TeamEntity("Internship", department)));
+            teamRepository.saveAll(List.of(new TeamEntity("local team 1", department)));
         }
 
         // Insert Admin User
@@ -74,7 +74,7 @@ public class DataInitializer implements CommandLineRunner {
                 UsersEntity admin = new UsersEntity();
                 admin.setName("Admin User");
                 admin.setEmail("admin@dat.com");
-                String hashedPassword = passwordEncoder.encode("Dat0@admin");
+                String hashedPassword = passwordEncoder.encode("Dat0@123");
                 admin.setPassword(hashedPassword);
                 admin.setPhone("1234567890");
                 admin.setRole(adminRole);
