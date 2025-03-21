@@ -55,25 +55,6 @@
         </div>
       </div>
 
-      <!-- Single Department Selection (For PM, DH, and Other Positions) -->
-      <!--Initially populated with all departments.-->
-      <div class="mb-3 row" id="departmentDiv">
-        <label for="department" class="col-sm-3 col-form-label fw-bold ">Department</label>
-
-        <div class="col-sm-9">
-          <select id="department" name="department" class="form-select">
-            <option value="" disabled>Select Department</option>
-            <option th:each="dep : ${departments}"
-                    th:value="${dep.id}"
-                    th:text="${dep.name}"
-                    th:selected="${assignedDepartmentId != null && assignedDepartmentId == dep.id}"
-                    th:classappend="${assignedDepartmentId != null && assignedDepartmentId == dep.id ? 'text-primary fw-bold' : ''}">
-            </option>
-          </select>
-
-
-        </div>
-      </div>
 
       <!-- Multi-Department Selection (For DivH Only) -->
       <div class="mb-3 row" id="multiDepartmentDiv" style="display: none;">
@@ -93,6 +74,24 @@
         </div>
       </div>
 
+      <!-- Single Department Selection (For PM, DH, and Other Positions) -->
+      <!--Initially populated with all departments.-->
+      <div class="mb-3 row" id="departmentDiv">
+        <label for="department" class="col-sm-3 col-form-label fw-bold ">Department</label>
+
+        <div class="col-sm-9">
+          <select id="department" name="department" class="form-select">
+            <option value="" disabled>Select Department</option>
+            <option th:each="dep : ${departments}"
+                    th:value="${dep.id}"
+                    th:text="${dep.name}"
+                    th:selected="${assignedDepartmentId != null and assignedDepartmentId == dep.id}">
+            </option>
+          </select>
+
+        </div>
+      </div>
+
       <!-- Team Selection (Hidden for PM, DH, and DivH) -->
       <div class="mb-3 row" id="teamDiv">
         <label for="team" class="col-sm-3 col-form-label fw-bold ">Team</label>
@@ -105,11 +104,9 @@
                     th:value="${team.id}"
                     th:text="${team.name}"
                     th:data-department-id="${team.department.id}"
-                    th:selected="${assignedTeam != null && assignedTeam == team.id}"
-                    th:classappend="${assignedTeam != null && assignedTeam == team.id ? 'text-primary fw-bold' : ''}">
+                    th:selected="${assignedTeamId != null and assignedTeamId == team.id}">
             </option>
           </select>
-
 
         </div>
 
@@ -189,42 +186,34 @@ teamSelect.value = "";
             let departmentDiv = document.getElementById("departmentDiv");
             let multiDepartmentDiv = document.getElementById("multiDepartmentDiv");
 
-
-    let assignedDepartmentId = departmentField.getAttribute("data-assigned-id");
-    let assignedTeam = teamField.getAttribute("data-assigned-team");
-
-    // Set the assigned department as default on first load
-    if (assignedDepartmentId) {
-        departmentField.value = assignedDepartmentId;
-    }
-
-    // Set the assigned team as default on first load
-    if (assignedTeam) {
-        teamField.value = assignedTeam;
-    }
-
             //Show Team, Department, Multi Departments fields according to position..........................................................
 function toggleFields() {
     let selectedOption = positionField.options[positionField.selectedIndex];
     let positionName = selectedOption.getAttribute("data-name");
 
+    // Reset styles for all fields
     teamDiv.style.visibility = "hidden";
     departmentDiv.style.visibility = "hidden";
-    multiDepartmentDiv.style.display = "none";
+    teamDiv.style.height = "0px";
+    departmentDiv.style.height = "0px";
 
+    // Special handling for multiDepartmentDiv
+    multiDepartmentDiv.style.display = "none"; // Fully hides it when not needed
+
+    // Show fields while keeping layout intact
     if (positionName === "Department Head") {
         departmentDiv.style.visibility = "visible";
         departmentDiv.style.height = "auto";
     } else if (positionName === "Division Head") {
-        multiDepartmentDiv.style.display = "flex";
+      multiDepartmentDiv.style.display = "flex"; // Ensure visibility for multiDepartmentDiv
     } else {
-        teamDiv.style.visibility = "visible";
-        teamDiv.style.height = "auto";
-        departmentDiv.style.visibility = "visible";
-        departmentDiv.style.height = "auto";
+      teamDiv.style.visibility = "visible";
+      teamDiv.style.height = "auto";
+      departmentDiv.style.visibility = "visible";
+      departmentDiv.style.height = "auto";
     }
 
-    // Fetch correct department & team data
+    // Fetch new department & team data dynamically
     updateDepartmentsAndTeams(positionName);
 }
 
@@ -232,79 +221,79 @@ function toggleFields() {
 toggleFields();
 positionField.addEventListener("change", toggleFields);
 
-
-            //Dynamic Teams and Departments based on position selected............................................................
+<!--Dynamic Teams and Departments based on position selected............................................................-->
 function updateDepartmentsAndTeams(positionName) {
     let userId = document.querySelector("input[name='id']").value;
 
     console.log(`Fetching data for user ${userId} with position ${positionName}`); // Debug log
 
-    fetch(`/user/edit/data/${userId}?positionName=${encodeURIComponent(positionName)}`)
-        .then(response => response.json())
-        .then(data => {
-            console.log("Data received:", data); // Debugging
+    fetch(`/user/edit/${userId}?positionName=${encodeURIComponent(positionName)}`, {
+        headers: {
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    })
 
-            // Clear existing department & team options
-            departmentField.innerHTML = '<option value="">Select Department</option>';
-            teamField.innerHTML = '<option value="">Select Team</option>';
-            multiDepartmentField.innerHTML = ''; // Clear multi department options
+    .then(response => {
+        console.log("Response received:", response);
+        return response.json();
+    })
 
-            // Division Head: Show multiple departments
-            if (positionName === "Division Head") {
-                multiDepartmentDiv.style.display = "flex"; // Show multi-department selection
-                departmentDiv.style.visibility = "hidden"; // Hide single department
-                departmentDiv.style.height = "0px";
+    .then(data => {
+        console.log("Data received from server:", data); // Debug log
 
-                data.departments.forEach(dept => {
-                    let option = new Option(dept.name, dept.id);
-                    if (data.assignedDepartmentIds && data.assignedDepartmentIds.includes(dept.id)) {
-                        option.classList.add("text-primary", "fw-bold");
-                    }
-                    multiDepartmentField.add(option);
-                });
+        // Update Department dropdown
+        departmentField.innerHTML = '<option value="" disabled>Select Department</option>';
 
-            } else {
-                // Show single department selection
-                multiDepartmentDiv.style.display = "none";
-                departmentDiv.style.visibility = "visible";
-                departmentDiv.style.height = "auto";
-
-                data.departments.forEach(dept => {
-                    let option = new Option(dept.name, dept.id);
-                    departmentField.add(option);
-                });
+        data.departments.forEach(dept => {
+            let option = new Option(dept.name, dept.id);
+            if (dept.id === data.assignedDepartmentId) {
+                option.selected = true;  // Set the assigned department as selected
             }
+            departmentField.add(option);
+            console.log(`Added department: ${dept.name}`); // Debug log
+        });
 
-            // Update Teams according to Department Selection
-            teamField.innerHTML = '<option value="">Select Team</option>';
-            data.teams.forEach(team => {
-                let option = new Option(team.name, team.id);
-                option.setAttribute("data-department-id", team.department.id);
-                teamField.add(option);
-            });
+        // Update Multi-Department dropdown for Division Head
+        multiDepartmentField.innerHTML = '';
 
-            console.log("Updated dropdowns successfully");
-            console.log("Data received from server:", data);
-            console.log("Updated department options:", departmentField.innerHTML);
-            console.log("Updated team options:", teamField.innerHTML);
+        data.departments.forEach(dept => {
+            let option = new Option(dept.name, dept.id);
+            if (data.assignedDepartmentIds && data.assignedDepartmentIds.includes(dept.id)) {
+                option.classList.add("text-primary", "fw-bold");
+            }
+            multiDepartmentField.add(option);
+            console.log(`Added to multiDepartment: ${dept.name}`); // Debug log
+        });
 
+        // Update Team dropdown
+        teamField.innerHTML = '<option value="" disabled>Select Team</option>';
 
-        })
-        .catch(error => console.error('Error fetching department and team data:', error));
+        data.teams.forEach(team => {
+            let option = new Option(team.name, team.id);
+            option.setAttribute("data-department-id", team.department.id);
+            if (team.id === data.assignedTeam.id) {
+                option.selected = true; // Set the assigned team as selected
+            }
+            teamField.add(option);
+            console.log(`Added team: ${team.name}`); // Debug log
+        });
+
+    })
+
+    .catch(error => console.error('Error fetching department and team data:', error));
+
 }
 
 
 
+// Initialize correct fields on page load
+toggleFields();
 
-            // Initialize correct fields on page load
-            toggleFields();
-
-            // Listen for position changes
-            positionField.addEventListener("change", toggleFields);
+// Listen for position changes
+positionField.addEventListener("change", toggleFields);
 
 
-        });
-
+});
 
 </script>
 

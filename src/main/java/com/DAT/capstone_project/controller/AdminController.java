@@ -150,9 +150,14 @@ public class AdminController {
         if (data.containsKey("assignedDepartmentIds")) {
             model.addAttribute("assignedDepartmentIds", data.get("assignedDepartmentIds"));
         }
+
         if (data.containsKey("assignedTeam")) {
             model.addAttribute("assignedTeam", data.get("assignedTeam"));
         }
+
+//        if (data.containsKey("assignedTeamId")) {
+//            model.addAttribute("assignedTeamId", data.get("assignedTeamId"));
+//        }
 
         logger.info("User Edit API called. Position: {}", positionName);
         logger.info("Returning data: {}", data);

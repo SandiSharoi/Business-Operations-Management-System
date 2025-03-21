@@ -539,6 +539,9 @@ public class AdminService {
             }
         }
 
+//        Integer assignedTeamId = assignedTeam.getId();
+
+
         Map<String, Object> data = new HashMap<>();
         data.put("user", user);
         data.put("positions", positions);
@@ -551,6 +554,7 @@ public class AdminService {
 
         data.put("teams", teams);
         data.put("assignedTeam", assignedTeam);
+//        data.put("assignedTeamId", assignedTeamId);
 
 
         return data;
