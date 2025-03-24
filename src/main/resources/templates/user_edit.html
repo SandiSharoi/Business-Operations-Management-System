@@ -62,7 +62,7 @@
 
         <div style="flex: 1;">
 
-          <select id="multiDepartment" name="departmentIds" class="form-select" multiple>
+          <select id="multiDepartment" th:field="*{departmentIds}" class="form-select" multiple>
             <option th:each="dep : ${departments}"
                     th:value="${dep.id}"
                     th:text="${dep.name}"
@@ -80,7 +80,7 @@
         <label for="department" class="col-sm-3 col-form-label fw-bold ">Department</label>
 
         <div class="col-sm-9">
-          <select id="department" name="department" class="form-select">
+          <select id="department" th:field="*{department.id}" class="form-select">
             <option value="" disabled>Select Department</option>
             <option th:each="dep : ${departments}"
                     th:value="${dep.id}"
@@ -98,7 +98,7 @@
 
         <div class="col-sm-9">
 
-          <select id="team" name="team" class="form-select">
+          <select id="team" th:field="*{team.id}" class="form-select">
             <option value="" disabled>Select Team</option>
             <option th:each="team : ${teams}"
                     th:value="${team.id}"
@@ -116,7 +116,10 @@
       <div class="mb-3 row">
         <label class="col-sm-3 col-form-label fw-bold">Role</label>
         <div class="col-sm-9">
-          <input type="text" class="form-control" th:value="${user.role.name}" readonly>
+          <select id="role" th:field="*{role.id}" class="form-select" required>
+            <option value="" disabled th:selected="${role == null}">Select Role</option>
+            <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"></option>
+          </select>
         </div>
       </div>
 

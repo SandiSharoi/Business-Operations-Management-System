@@ -318,15 +318,47 @@ public class AdminService {
         UsersEntity userEntity = usersRepository.findById(userDTO.getId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+        String originalPosition = userEntity.getPosition() != null ? userEntity.getPosition().getName() : null;
+
+        // **Step 1: Remove user ID from the respective column if the user was previously an approver**
+        if ("Project Manager".equals(originalPosition)) {
+            teamRepository.clearPmIdFromOtherTeams(userEntity.getId());
+        } else if ("Department Head".equals(originalPosition)) {
+            teamRepository.clearDhIdFromOtherDepartments(userEntity.getId(), userEntity.getDepartment().getId().longValue());
+        }else if ("Division Head".equals(originalPosition)) {
+            List<Integer> departmentIds = teamRepository.getDivhDepartmentIds(userEntity.getId())
+                    .stream()
+                    .map(Long::intValue)  // Convert Long to Integer
+                    .collect(Collectors.toList());
+
+            teamRepository.clearDivhIdFromOtherDepartments(userEntity.getId(), departmentIds);
+        }
+
+        // **Step 2: Remove original department_id and team_id if they are not null in users table**
+        if (userEntity.getDepartment() != null) {
+            userEntity.setDepartment(null);
+        }
+
+        if (userEntity.getTeam() != null) {
+            userEntity.setTeam(null);
+        }
+
+
+        // **Step 3: Update user details**
         userEntity.setName(userDTO.getName());
         userEntity.setEmail(userDTO.getEmail());
         userEntity.setPhone(userDTO.getPhone());
 
         // **Update Department**
-        if (userDTO.getDepartment() != null && userDTO.getDepartment().getId() != null) {
-            DepartmentEntity department = departmentRepository.findById(userDTO.getDepartment().getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Department not found"));
-            userEntity.setDepartment(department);
+        if (!"Division Head".equals(userEntity.getPosition().getName())) {
+
+            if (userDTO.getDepartment() != null && userDTO.getDepartment().getId() != null) {
+                DepartmentEntity department = departmentRepository.findById(userDTO.getDepartment().getId())
+                        .orElseThrow(() -> new IllegalArgumentException("Department not found"));
+                userEntity.setDepartment(department);
+            } else {
+                userEntity.setDepartment(null);
+            }
         }
 
         // **Update Position**
@@ -334,21 +366,57 @@ public class AdminService {
             PositionEntity position = positionRepository.findById(userDTO.getPosition().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Position not found"));
             userEntity.setPosition(position);
+        } else {
+            userEntity.setPosition(null);
         }
 
-        // **CASE 1: Update PM_ID (Fix: Only update if team actually changes)**
+        // **Step 4: Assign user ID to the respective column if the new position is an approver**
+
+// **CASE 1: Update PM_ID (Fix: Always reassign even if the team is unchanged)**
         if ("Project Manager".equals(userEntity.getPosition().getName())) {
             if (userDTO.getTeam() != null && userDTO.getTeam().getId() != null) {
                 TeamEntity newTeam = teamRepository.findById(userDTO.getTeam().getId())
                         .orElseThrow(() -> new IllegalArgumentException("Team not found"));
 
-                if (!newTeam.getId().equals(userEntity.getTeam() != null ? userEntity.getTeam().getId() : null)) {
-                    teamRepository.clearPmIdFromOtherTeams(userEntity.getId());
-                    newTeam.setPm(userEntity);
-                    userEntity.setTeam(newTeam);
+                newTeam.setPm(userEntity);
+                userEntity.setTeam(newTeam);
+            }
+        }
+
+
+        // **CASE 2: Update DH_ID (Fix: Only update if department actually changes)**
+        if ("Department Head".equals(userEntity.getPosition().getName())) {
+            if (userDTO.getDepartment() != null && userDTO.getDepartment().getId() != null) {
+                Long departmentId = userDTO.getDepartment().getId().longValue();
+
+                if (!departmentId.equals(userEntity.getDepartment() != null ? userEntity.getDepartment().getId() : null)) {
+                    teamRepository.assignDhToDepartment(userEntity.getId(), departmentId);
                 }
             }
-        } else {
+        }
+
+        // **CASE 3: Update DIVH_ID (Fix: Always reassign even if department list is unchanged)**
+        if ("Division Head".equals(userEntity.getPosition().getName())) {
+            if (userDTO.getDepartmentIds() != null) {
+                List<Long> existingDepartmentIds = teamRepository.getDivhDepartmentIds(userEntity.getId());
+
+                Set<Long> existingSet = new HashSet<>(existingDepartmentIds);
+                Set<Long> newSet = userDTO.getDepartmentIds().stream()
+                        .map(Integer::longValue) // Convert Integer to Long
+                        .collect(Collectors.toSet());
+
+                // **Always reassign even if the department list is the same**
+                List<Integer> newDepartmentIds = newSet.stream()
+                        .map(Long::intValue) // Convert Long back to Integer
+                        .collect(Collectors.toList());
+
+                teamRepository.assignDivhToDepartments(userEntity.getId(), newDepartmentIds);
+            }
+        }
+
+
+//        CASE 4 : non approvers
+        else {
             if (userDTO.getTeam() != null && userDTO.getTeam().getId() != null) {
                 TeamEntity newTeam = teamRepository.findById(userDTO.getTeam().getId())
                         .orElseThrow(() -> new IllegalArgumentException("Team not found"));
@@ -362,52 +430,8 @@ public class AdminService {
                     .orElseThrow(() -> new IllegalArgumentException("Role not found"));
             userEntity.setRole(role);
         }
-
-        // **CASE 2: Update DH_ID (Fix: Only update if department actually changes)**
-        if ("Department Head".equals(userEntity.getPosition().getName())) {
-            if (userDTO.getDepartment() != null && userDTO.getDepartment().getId() != null) {
-                Long departmentId = userDTO.getDepartment().getId().longValue();
-
-                if (!departmentId.equals(userEntity.getDepartment() != null ? userEntity.getDepartment().getId() : null)) {
-                    teamRepository.clearDhIdFromOtherDepartments(userEntity.getId(), departmentId);
-                    teamRepository.assignDhToDepartment(userEntity.getId(), departmentId);
-                }
-            }
-        }
-
-// **CASE 3: Update DIVH_ID (Fix: Only update if department list actually changes)**
-        if ("Division Head".equals(userEntity.getPosition().getName())) {
-            if (userDTO.getDepartmentIds() != null) {
-                List<Long> existingDepartmentIds = teamRepository.getDivhDepartmentIds(userEntity.getId());
-
-                Set<Long> existingSet = new HashSet<>(existingDepartmentIds);
-                Set<Long> newSet = userDTO.getDepartmentIds().stream()
-                        .map(Integer::longValue) // Convert Integer to Long
-                        .collect(Collectors.toSet());
-
-                // Only proceed if there's a change in assigned departments
-                if (!existingSet.equals(newSet)) {
-                    // Convert Set<Long> back to List<Integer> before passing to repository
-                    List<Integer> newDepartmentIds = newSet.stream()
-                            .map(Long::intValue) // Convert Long back to Integer
-                            .collect(Collectors.toList());
-
-                    // Remove user from previous departments only if there are changes
-                    teamRepository.clearDivhIdFromOtherDepartments(userEntity.getId(), newDepartmentIds);
-
-                    // Assign user to the new departments
-                    teamRepository.assignDivhToDepartments(userEntity.getId(), newDepartmentIds);
-                }
-            }
-        }
-
-
-
-
         usersRepository.save(userEntity);
     }
-
-
 
 
     // User details View or Edit or Delete........................................................

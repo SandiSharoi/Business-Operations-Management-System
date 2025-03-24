@@ -192,8 +192,18 @@ public class AdminController {
 
     @PostMapping("/user/update/{id}")
     public String updateUser(@PathVariable Long id, @ModelAttribute("user") UsersDTO userDTO, Model model) {
+        // Convert department ID (if present) to DepartmentDTO
+        if (userDTO.getDepartment() != null && userDTO.getDepartment().getId() != null) {
+            Integer departmentId = userDTO.getDepartment().getId(); // Ensure it's an Integer
+            DepartmentDTO departmentDTO = new DepartmentDTO();
+            departmentDTO.setId(departmentId);
+            userDTO.setDepartment(departmentDTO); // Set the converted DTO
+        } else {
+            userDTO.setDepartment(null);
+        }
+
         // Check if the email already exists (excluding the current user)
-        if (adminService.isEmailTaken(  userDTO.getEmail(), id)) {
+        if (adminService.isEmailTaken(userDTO.getEmail(), id)) {
             model.addAttribute("emailError", "This email is already in use. Please use a different email.");
 
             // Get user details + dropdown lists
@@ -208,6 +218,9 @@ public class AdminController {
         adminService.updateUser(userDTO);
         return "registration_list_success";  // Redirect to the success page
     }
+
+
+
 
     @PostMapping("/user/delete/{id}")
     public String deleteUser(@PathVariable Long id) {

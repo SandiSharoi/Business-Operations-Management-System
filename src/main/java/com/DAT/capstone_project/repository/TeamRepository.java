@@ -59,31 +59,58 @@ public interface TeamRepository extends JpaRepository<TeamEntity, Integer>{
     @Query("SELECT t FROM TeamEntity t WHERE t.department.id = :departmentId AND t.pm.id IS NULL")
     List<TeamEntity> findTeamsWithUnassignedPm(@Param("departmentId") Integer departmentId);
 
-    @Query("SELECT t FROM TeamEntity t WHERE t.department.id = :departmentId AND t.dh.id IS NULL")
-    List<TeamEntity> findTeamsWithUnassignedDh(@Param("departmentId") Integer departmentId);
+//    @Query("SELECT t FROM TeamEntity t WHERE t.department.id = :departmentId AND t.dh.id IS NULL")
+//    List<TeamEntity> findTeamsWithUnassignedDh(@Param("departmentId") Integer departmentId);
+//
+//    @Query("SELECT t FROM TeamEntity t WHERE t.department.id = :departmentId AND t.divh.id IS NULL")
+//    List<TeamEntity> findTeamsWithUnassignedDivh(@Param("departmentId") Integer departmentId);
+//
+//    // Custom query to find a team by pm_id and department_id
+//    @Query("SELECT t FROM TeamEntity t WHERE t.pm.id = :pmId AND t.department.id = :deptId")
+//    TeamEntity findTeamByPmIdAndDeptId(@Param("pmId") Long pmId, @Param("deptId") Integer deptId);
 
-    @Query("SELECT t FROM TeamEntity t WHERE t.department.id = :departmentId AND t.divh.id IS NULL")
-    List<TeamEntity> findTeamsWithUnassignedDivh(@Param("departmentId") Integer departmentId);
 
-    // Custom query to find a team by pm_id and department_id
-    @Query("SELECT t FROM TeamEntity t WHERE t.pm.id = :pmId AND t.department.id = :deptId")
-    TeamEntity findTeamByPmIdAndDeptId(@Param("pmId") Long pmId, @Param("deptId") Integer deptId);
+//    @Transactional
+//    @Modifying
+//    @Query("UPDATE TeamEntity t SET t.pm = NULL WHERE t.pm.id = :pmId")
+//    void clearPmIdFromOtherTeams(@Param("pmId") Long pmId);
 
+//    @Transactional
+//    @Modifying
+//    @Query("UPDATE TeamEntity t SET t.dh = NULL WHERE t.dh.id = :dhId AND t.department.id != :departmentId")
+//    void clearDhIdFromOtherDepartments(@Param("dhId") Long dhId, @Param("departmentId") Long departmentId);
+//
+//    @Transactional
+//    @Modifying
+//    @Query("UPDATE TeamEntity t SET t.divh = NULL WHERE t.divh.id = :divhId AND t.department.id NOT IN :departmentIds")
+//    void clearDivhIdFromOtherDepartments(@Param("divhId") Long divhId, @Param("departmentIds") List<Integer> departmentIds);
+
+
+    List<TeamEntity> findByDepartmentId(Long departmentId);
+    List<TeamEntity> findByDepartmentIdAndPmIdIsNull(Long departmentId);
+    List<TeamEntity> findByDepartmentIdAndDhIdIsNull(Long departmentId);
+    List<TeamEntity> findByDepartmentIdAndDivhIdIsNull(Long departmentId);
+
+//    Update..................................................................................
 
     @Transactional
     @Modifying
-    @Query("UPDATE TeamEntity t SET t.pm = NULL WHERE t.pm.id = :pmId")
-    void clearPmIdFromOtherTeams(@Param("pmId") Long pmId);
+    @Query("UPDATE TeamEntity t SET t.pm = NULL WHERE t.pm.id = :userId")
+    void clearPmIdFromOtherTeams(@Param("userId") Long userId);
 
     @Transactional
     @Modifying
-    @Query("UPDATE TeamEntity t SET t.dh = NULL WHERE t.dh.id = :dhId AND t.department.id != :departmentId")
-    void clearDhIdFromOtherDepartments(@Param("dhId") Long dhId, @Param("departmentId") Long departmentId);
+    @Query("UPDATE TeamEntity t SET t.dh = NULL WHERE t.dh.id = :userId AND t.department.id = :departmentId")
+    void clearDhIdFromOtherDepartments(@Param("userId") Long userId, @Param("departmentId") Long departmentId);
 
     @Transactional
     @Modifying
-    @Query("UPDATE TeamEntity t SET t.divh = NULL WHERE t.divh.id = :divhId AND t.department.id NOT IN :departmentIds")
-    void clearDivhIdFromOtherDepartments(@Param("divhId") Long divhId, @Param("departmentIds") List<Integer> departmentIds);
+    @Query("UPDATE TeamEntity t SET t.divh = NULL WHERE t.divh.id = :userId AND t.department.id IN :departmentIds")
+    void clearDivhIdFromOtherDepartments(@Param("userId") Long userId, @Param("departmentIds") List<Integer> departmentIds);
+
+    @Transactional
+    @Query("SELECT t.department.id FROM TeamEntity t WHERE t.divh.id = :userId")
+    List<Long> getDivhDepartmentIds(@Param("userId") Long userId);
 
     @Transactional
     @Modifying
@@ -95,12 +122,18 @@ public interface TeamRepository extends JpaRepository<TeamEntity, Integer>{
     @Query("UPDATE TeamEntity t SET t.divh = (SELECT u FROM UsersEntity u WHERE u.id = :divhId) WHERE t.department.id IN :departmentIds")
     void assignDivhToDepartments(@Param("divhId") Long divhId, @Param("departmentIds") List<Integer> departmentIds);
 
-    @Query("SELECT t.department.id FROM TeamEntity t WHERE t.divh.id = :userId")
-    List<Long> getDivhDepartmentIds(@Param("userId") Long userId);
 
 
-    List<TeamEntity> findByDepartmentId(Long departmentId);
-    List<TeamEntity> findByDepartmentIdAndPmIdIsNull(Long departmentId);
-    List<TeamEntity> findByDepartmentIdAndDhIdIsNull(Long departmentId);
-    List<TeamEntity> findByDepartmentIdAndDivhIdIsNull(Long departmentId);
+//    @Transactional
+//    @Modifying
+//    @Query("UPDATE TeamEntity t SET t.dh.id = :userId WHERE t.department.id = :departmentId")
+//    void assignDhToDep(@Param("userId") Long userId, @Param("departmentId") Integer departmentId);
+//
+//
+//    @Transactional
+//    @Modifying
+//    @Query("UPDATE TeamEntity t SET t.divh.id = :userId WHERE t.department.id IN :departmentIds")
+//    void assignDivhToDeps(@Param("userId") Long userId, @Param("departmentIds") List<Integer> departmentIds);
+
+
 }
