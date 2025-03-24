@@ -478,7 +478,14 @@ public class AdminService {
                 unassignedDepartmentIds = teamRepository.findDepartmentIdsWhereDivhIsNull();
                 assignedDepartmentIds = teamRepository.findDepartmentIdsByDivhId(user.getId());
             } else {
+                // Fetch all departments
                 allDepartments = departmentRepository.findAllByOrderByIdAsc();
+
+                // Fetch assigned department ID from the users table
+                Optional<UsersEntity> userOpt = usersRepository.findById(id);
+                if (userOpt.isPresent() && userOpt.get().getDepartment() != null) {
+                    assignedDepartmentId = userOpt.get().getDepartment().getId(); // Fetching department ID
+                }
             }
         }
 
@@ -533,9 +540,15 @@ public class AdminService {
 
         else {
             for (Integer deptId : finalDepartmentIds) {
-
-                // Fetch all teams under the department for non approver positions
+                // Fetch all teams under the department for non-approver positions
                 teams.addAll(teamRepository.findByDepartmentId(deptId));
+            }
+
+            // Fetch assigned team from users table using team_id
+            Optional<UsersEntity> userOpt = usersRepository.findById(id);
+
+            if (userOpt.isPresent()) {
+                assignedTeam = userOpt.get().getTeam(); // Fetching the team entity
             }
         }
 
