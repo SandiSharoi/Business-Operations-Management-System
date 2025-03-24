@@ -123,7 +123,7 @@ public class AdminController {
 
     @GetMapping("/user/edit/{id}")
     public Object editUserDetails( @PathVariable Long id, @RequestParam(required = false) String positionName,
-                                   @RequestHeader(value = "X-Requested-With", required = false) String requestedWith,
+                                   @RequestHeader Map<String, String> headers,  // Capture all headers
                                    Model model) {
 
         Map<String, Object> data = adminService.getUserDetailsEdit(id, true, positionName);
@@ -131,9 +131,15 @@ public class AdminController {
         logger.info("First User Edit API called. Position: {}", positionName);
         logger.info("First eturning data: {}", data);
 
+        logger.info("Received Headers: {}", headers);
+
+        String requestedWith = headers.get("x-requested-with");  // Try getting it manually
+        logger.info("Requested-With Header: {}", requestedWith);
+
+
         // Check if the request is an AJAX request
-        if ("XMLHttpRequest".equals(requestedWith)) {
-            return ResponseEntity.ok(data);
+        if ("XMLHttpRequest".equalsIgnoreCase(requestedWith)) {  // Ignore case
+            return ResponseEntity.ok(adminService.getUserDetailsEdit(id, true, positionName));
         }
 
         // Regular request - load the Thymeleaf page

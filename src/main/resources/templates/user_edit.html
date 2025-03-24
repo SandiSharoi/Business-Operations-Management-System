@@ -200,102 +200,95 @@ function toggleFields() {
     // Special handling for multiDepartmentDiv
     multiDepartmentDiv.style.display = "none"; // Fully hides it when not needed
 
-    // Show fields while keeping layout intact
-    if (positionName === "Department Head") {
-        departmentDiv.style.visibility = "visible";
-        departmentDiv.style.height = "auto";
-    } else if (positionName === "Division Head") {
-      multiDepartmentDiv.style.display = "flex"; // Ensure visibility for multiDepartmentDiv
-    } else {
-      teamDiv.style.visibility = "visible";
-      teamDiv.style.height = "auto";
-      departmentDiv.style.visibility = "visible";
-      departmentDiv.style.height = "auto";
+        if (positionName === "Department Head") {
+            departmentDiv.style.visibility = "visible";
+            departmentDiv.style.height = "auto";
+        } else if (positionName === "Division Head") {
+            multiDepartmentDiv.style.display = "flex"; // Show multi-department
+        } else {
+            // ✅ Ensure non-approvers always see team & department fields
+            teamDiv.style.visibility = "visible";
+            teamDiv.style.height = "auto";
+            departmentDiv.style.visibility = "visible";
+            departmentDiv.style.height = "auto";
+        }
+
+        // Fetch new department & team data dynamically
+        updateDepartmentsAndTeams(positionName);
     }
 
-    // Fetch new department & team data dynamically
-    updateDepartmentsAndTeams(positionName);
-}
+    function updateDepartmentsAndTeams(positionName) {
+        let userId = document.querySelector("input[name='id']").value;
 
-// Ensure fields are set correctly on load
-toggleFields();
-positionField.addEventListener("change", toggleFields);
+        console.log(`Fetching data for user ${userId} with position ${positionName}`);
 
-<!--Dynamic Teams and Departments based on position selected............................................................-->
-function updateDepartmentsAndTeams(positionName) {
-    let userId = document.querySelector("input[name='id']").value;
-
-    console.log(`Fetching data for user ${userId} with position ${positionName}`); // Debug log
-
-    fetch(`/user/edit/${userId}?positionName=${encodeURIComponent(positionName)}`, {
-        headers: {
-            "X-Requested-With": "XMLHttpRequest"
-        }
-    })
-
-    .then(response => {
-        console.log("Response received:", response);
-        return response.json();
-    })
-
-    .then(data => {
-        console.log("Data received from server:", data); // Debug log
-
-        // Update Department dropdown
-        departmentField.innerHTML = '<option value="" disabled>Select Department</option>';
-
-        data.departments.forEach(dept => {
-            let option = new Option(dept.name, dept.id);
-            if (dept.id === data.assignedDepartmentId) {
-                option.selected = true;  // Set the assigned department as selected
+        fetch(`/user/edit/${userId}?positionName=${encodeURIComponent(positionName)}`, {
+            headers: {
+                "x-requested-with": "XMLHttpRequest"  // Ensure case-sensitivity
             }
-            departmentField.add(option);
-            console.log(`Added department: ${dept.name}`); // Debug log
-        });
+        })
+        .then(response => {
+            console.log("Response received:", response);
+            return response.json();
+        })
+        .then(data => {
+            console.log("Data received from server:", data);
 
-        // Update Multi-Department dropdown for Division Head
-        multiDepartmentField.innerHTML = '';
-
-        data.departments.forEach(dept => {
-            let option = new Option(dept.name, dept.id);
-            if (data.assignedDepartmentIds && data.assignedDepartmentIds.includes(dept.id)) {
-                option.classList.add("text-primary", "fw-bold");
+            // ✅ Ensure the backend returned teams
+            if (!data.teams || data.teams.length === 0) {
+                console.warn("No teams received from the backend!");
             }
-            multiDepartmentField.add(option);
-            console.log(`Added to multiDepartment: ${dept.name}`); // Debug log
-        });
 
-        // Update Team dropdown
-        teamField.innerHTML = '<option value="" disabled>Select Team</option>';
+            // ✅ Update Department dropdown
+            departmentField.innerHTML = '<option value="" disabled>Select Department</option>';
+            data.departments.forEach(dept => {
+                let option = new Option(dept.name, dept.id);
+                if (dept.id === data.assignedDepartmentId) {
+                    option.selected = true;  // Set the assigned department as selected
+                }
+                departmentField.add(option);
+                console.log(`Added department: ${dept.name}`);
+            });
 
-        data.teams.forEach(team => {
-            let option = new Option(team.name, team.id);
-            option.setAttribute("data-department-id", team.department.id);
-            if (team.id === data.assignedTeam.id) {
-                option.selected = true; // Set the assigned team as selected
-            }
-            teamField.add(option);
-            console.log(`Added team: ${team.name}`); // Debug log
-        });
+            // ✅ Update Multi-Department dropdown for Division Head
+            multiDepartmentField.innerHTML = '';
+            data.departments.forEach(dept => {
+                let option = new Option(dept.name, dept.id);
+                if (data.assignedDepartmentIds && data.assignedDepartmentIds.includes(dept.id)) {
+                    option.classList.add("text-primary", "fw-bold");
+                }
+                multiDepartmentField.add(option);
+                console.log(`Added to multiDepartment: ${dept.name}`);
+            });
 
-    })
+            // ✅ Update Team dropdown
+            teamField.innerHTML = '<option value="" disabled>Select Team</option>';
+            data.teams.forEach(team => {
+                if (!team.department) {
+                    console.warn(`Skipping team ${team.name} because department is missing`);
+                    return;
+                }
 
-    .catch(error => console.error('Error fetching department and team data:', error));
+                let option = new Option(team.name, team.id);
+                option.setAttribute("data-department-id", team.department.id);
+                if (team.id === data.assignedTeam?.id) {
+                    option.selected = true; // Set the assigned team as selected
+                }
+                teamField.add(option);
+                console.log(`Added team: ${team.name}, department ID: ${team.department.id}`);
+            });
+        })
+        .catch(error => console.error('Error fetching department and team data:', error));
+    }
 
-}
+    // ✅ Ensure fields are set correctly on load
+    toggleFields();
 
-
-
-// Initialize correct fields on page load
-toggleFields();
-
-// Listen for position changes
-positionField.addEventListener("change", toggleFields);
-
-
+    // ✅ Listen for position changes
+    positionField.addEventListener("change", toggleFields);
 });
-
 </script>
+
 
 </body>
 </html>
