@@ -114,26 +114,25 @@ public interface TeamRepository extends JpaRepository<TeamEntity, Integer>{
 
     @Transactional
     @Modifying
+    @Query("UPDATE TeamEntity t SET t.pm = (SELECT u FROM UsersEntity u WHERE u.id = :pmId) WHERE t.id = :teamId")
+    void assignPmToTeam(@Param("pmId") Long pmId, @Param("teamId") Long teamId);
+
+    @Transactional
+    @Modifying
     @Query("UPDATE TeamEntity t SET t.dh = (SELECT u FROM UsersEntity u WHERE u.id = :dhId) WHERE t.department.id = :departmentId")
     void assignDhToDepartment(@Param("dhId") Long dhId, @Param("departmentId") Long departmentId);
+
 
     @Transactional
     @Modifying
     @Query("UPDATE TeamEntity t SET t.divh = (SELECT u FROM UsersEntity u WHERE u.id = :divhId) WHERE t.department.id IN :departmentIds")
-    void assignDivhToDepartments(@Param("divhId") Long divhId, @Param("departmentIds") List<Integer> departmentIds);
+    void assignDivhToDepartments(@Param("divhId") Long divhId, @Param("departmentIds") List<Long> departmentIds);
 
+    @Transactional
+    @Modifying
+    @Query("UPDATE TeamEntity t SET t.divh = NULL WHERE t.department.id IN :departmentIds AND t.divh.id = :divhId")
+    void unassignDivhFromDepartments(@Param("divhId") Long divhId, @Param("departmentIds") List<Long> departmentIds);
 
-
-//    @Transactional
-//    @Modifying
-//    @Query("UPDATE TeamEntity t SET t.dh.id = :userId WHERE t.department.id = :departmentId")
-//    void assignDhToDep(@Param("userId") Long userId, @Param("departmentId") Integer departmentId);
-//
-//
-//    @Transactional
-//    @Modifying
-//    @Query("UPDATE TeamEntity t SET t.divh.id = :userId WHERE t.department.id IN :departmentIds")
-//    void assignDivhToDeps(@Param("userId") Long userId, @Param("departmentIds") List<Integer> departmentIds);
 
 
 }

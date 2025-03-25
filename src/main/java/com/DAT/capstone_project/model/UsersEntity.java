@@ -47,4 +47,15 @@ public class UsersEntity {
     @JoinColumn(name = "role_id")
     @ToString.Exclude
     private RoleEntity role;
+
+//    public void removeDepartment() {
+//        this.department = null;
+//        // If you have any additional cleanup logic or cascading removal logic, include it here
+//    }
+//
+//    public void removeTeam() {
+//        this.team = null;
+//        // Similar cleanup logic for team if necessary
+//    }
+
 }
