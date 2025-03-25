@@ -16,6 +16,20 @@
     <form th:action="@{'/user/update/' + ${user.id} }" th:object="${user}" method="post">
       <input type="hidden" th:field="*{id}"/>
 
+      <!-- Staff ID -->
+      <div class="mb-3 row">
+        <label class="col-sm-3 col-form-label fw-bold ">Staff ID</label>
+        <div class="col-sm-9">
+          <input type="text" th:field="*{staffId}" class="form-control" required
+                 pattern="^(26-\d{5}|25-\d{5})$"
+                 title="Staff ID should follow the format '26-xxxxx' or '25-xxxxx'">
+          <!-- <span th:if="${#fields.hasErrors('staffId')}" class="text-danger"
+                 th:errors="*{staffId}">Invalid staff ID format</span> -->
+          <span th:if="${staffIdError}" class="text-danger" th:text="${staffIdError}"></span>
+          <span th:if="${staffIdFormatError}" class="text-danger" th:text="${staffIdFormatError}"></span>
+        </div>
+      </div>
+
       <!-- Full Name -->
       <div class="mb-3 row">
         <label class="col-sm-3 col-form-label fw-bold ">Full Name</label>
@@ -29,6 +43,7 @@
         <label class="col-sm-3 col-form-label fw-bold ">Email Address</label>
         <div class="col-sm-9">
           <input type="email" th:field="*{email}" class="form-control" required>
+          <span th:if="${emailError}" class="text-danger" th:text="${emailError}"></span>
         </div>
       </div>
 

@@ -9,12 +9,12 @@ import java.util.Optional;
 
 @Repository
 public interface UsersRepository extends JpaRepository<UsersEntity, Long> {
-    Optional<UsersEntity> findByEmail(String email);
-    @SuppressWarnings("null")
     Optional<UsersEntity> findById(Long id);
-    Optional<UsersEntity> findByName(String name);
 
-        // Add this method for searching by name
+
+    Optional<UsersEntity> findByStaffId(String staffId);
+
+    // Add this method for searching by name
     List<UsersEntity> findByNameContainingIgnoreCase(String name);
 
     List<UsersEntity> findAllByOrderByIdAsc();
@@ -22,4 +22,8 @@ public interface UsersRepository extends JpaRepository<UsersEntity, Long> {
     boolean existsByEmail(String email); // Checks if an email is already in the database
 
     boolean existsByEmailAndIdNot(String email, Long userId);
+
+    boolean existsByStaffId(String staffId);
+
+    boolean existsByStaffIdAndIdNot(String staffId, Long userId);
 }

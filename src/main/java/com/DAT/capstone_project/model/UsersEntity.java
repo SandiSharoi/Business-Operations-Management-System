@@ -17,6 +17,10 @@ public class UsersEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "staff_id", nullable = false, unique = true)
+    @Pattern(regexp = "^(26|25)-\\d{5}$", message = "Invalid staff ID format. Use '26-xxxxx' or '25-xxxxx'.")
+    private String staffId;
+
     private String name;
     private String email;
 
@@ -47,15 +51,4 @@ public class UsersEntity {
     @JoinColumn(name = "role_id")
     @ToString.Exclude
     private RoleEntity role;
-
-//    public void removeDepartment() {
-//        this.department = null;
-//        // If you have any additional cleanup logic or cascading removal logic, include it here
-//    }
-//
-//    public void removeTeam() {
-//        this.team = null;
-//        // Similar cleanup logic for team if necessary
-//    }
-
 }

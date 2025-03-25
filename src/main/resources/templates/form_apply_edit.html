@@ -25,31 +25,44 @@
 
 <!-- Hero Section -->
 <section class="d-flex justify-content-center align-items-center min-vh-100">
-    
+
     <!-- Form Card -->
     <div class="card col-lg-8 col-md-10 p-5 rounded-3 shadow-lg" style="background-color:#CFE2FF; color: white;">
         <h1 class="text-center mb-4 fw-bold text-3d" style="color: #4d76b8;">Edit Overtime Application</h1>
 
-        <div th:if="${error}" class="alert alert-danger" role="alert">
-            <p th:text="${error}"></p>
-        </div>
-        
+
         <form th:action="@{/update_form_apply}" th:object="${formApplyDTO}" method="post" enctype="multipart/form-data">
-        
+
+
             <!-- Hidden Input for Form ID -->
             <input type="hidden" th:field="*{formApplyId}" />
 
-            <!-- Task -->
+            <!-- Project ID -->
             <div class="mb-4 row">
-                <label for="task" class="col-sm-3 col-form-label fw-bold">Task</label>
+                <label for="project_id" class="col-sm-3 col-form-label text-start fw-bold">Project ID</label>
                 <div class="col-sm-9">
-                    <input type="text" id="task" th:field="*{task}" class="form-control" placeholder="Enter Task" required />
+                    <input type="text" id="project_id" th:field="*{projectId}" class="form-control" placeholder="Enter Project ID" required
+                           title="Project ID must be in the format 'PJ-xxxx'" />
+
+                    <!-- Display error message -->
+                    <span th:if="${formatError}" class="text-danger" th:text="${formatError}"></span>
+                    <span th:if="${duplicateError}" class="text-danger" th:text="${duplicateError}"></span>
+                </div>
+            </div>
+
+
+
+            <!-- Project Name -->
+            <div class="mb-4 row">
+                <label for="project_name" class="col-sm-3 col-form-label text-start fw-bold">Project Name</label>
+                <div class="col-sm-9">
+                    <input type="text" id="project_name" th:field="*{projectName}" class="form-control" placeholder="Enter Project Name" required />
                 </div>
             </div>
 
             <!-- Planned Date -->
             <div class="mb-4 row">
-                <label for="planned_date" class="col-sm-3 col-form-label fw-bold">Planned Date</label>
+                <label for="planned_date" class="col-sm-3 col-form-label text-start fw-bold">Planned Date</label>
                 <div class="col-sm-9">
                     <input type="date" id="planned_date" th:field="*{plannedDate}"  class="form-control" required />
 
@@ -58,8 +71,8 @@
 
             <!-- Planned Start Hour -->
             <div class="mb-4 row">
-                <label for="planned_start_hour" class="col-sm-3 col-form-label fw-bold">Planned Start Hour</label>
-                <div class="col-sm-9">                   
+                <label for="planned_start_hour" class="col-sm-3 col-form-label text-start fw-bold">Planned Start Hour</label>
+                <div class="col-sm-9">
                     <input type="time" id="planned_start_hour" th:field="*{plannedStartHour}" class="form-control" required />
 
                 </div>
@@ -67,7 +80,7 @@
 
             <!-- Planned End Hour -->
             <div class="mb-4 row">
-                <label for="planned_end_hour" class="col-sm-3 col-form-label fw-bold">Planned End Hour</label>
+                <label for="planned_end_hour" class="col-sm-3 col-form-label text-start fw-bold">Planned End Hour</label>
                 <div class="col-sm-9">
                     <input type="time" id="planned_end_hour" th:field="*{plannedEndHour}" class="form-control" required />
 
@@ -76,7 +89,7 @@
 
             <!-- Actual Date -->
             <div class="mb-4 row">
-                <label for="actual_date" class="col-sm-3 col-form-label fw-bold">Actual Date</label>
+                <label for="actual_date" class="col-sm-3 col-form-label text-start fw-bold">Actual Date</label>
                 <div class="col-sm-9">
                     <input type="date" id="actual_date" th:field="*{actualDate}" class="form-control" required />
 
@@ -85,8 +98,8 @@
 
             <!-- Actual Start Hour -->
             <div class="mb-4 row">
-                <label for="actual_start_hour" class="col-sm-3 col-form-label fw-bold">Actual Start Hour</label>
-                <div class="col-sm-9">                   
+                <label for="actual_start_hour" class="col-sm-3 col-form-label text-start fw-bold">Actual Start Hour</label>
+                <div class="col-sm-9">
                     <input type="time" id="actual_start_hour" th:field="*{actualStartHour}" class="form-control" required />
 
                 </div>
@@ -94,7 +107,7 @@
 
             <!-- Actual End Hour -->
             <div class="mb-4 row">
-                <label for="actual_end_hour" class="col-sm-3 col-form-label fw-bold">Actual End Hour</label>
+                <label for="actual_end_hour" class="col-sm-3 col-form-label text-start fw-bold">Actual End Hour</label>
                 <div class="col-sm-9">
                     <input type="time" id="actual_end_hour" th:field="*{actualEndHour}" class="form-control" required />
                 </div>
@@ -102,7 +115,7 @@
 
             <!-- Overtime Date -->
             <div class="mb-4 row">
-                <label class="col-sm-3 col-form-label fw-bold">Overtime Date</label>
+                <label class="col-sm-3 col-form-label text-start fw-bold">Overtime Date</label>
                 <div class="col-sm-9">
                     <div class="form-check">
                         <input type="radio" id="weekday" th:field="*{overtimeDate}" value="Weekday" class="form-check-input" />
@@ -121,7 +134,7 @@
 
             <!-- Work Type -->
             <div class="mb-4 row">
-                <label class="col-sm-3 col-form-label fw-bold">Work Type</label>
+                <label class="col-sm-3 col-form-label text-start fw-bold">Work Type</label>
                 <div class="col-sm-9">
                     <div class="form-check">
                         <input type="radio" id="work_from_home" th:field="*{workType}" value="Work From Home" class="form-check-input" />
@@ -136,7 +149,7 @@
 
             <!-- Description -->
             <div class="mb-4 row">
-                <label for="description" class="col-sm-3 col-form-label fw-bold">Description</label>
+                <label for="description" class="col-sm-3 col-form-label text-start fw-bold">Description</label>
                 <div class="col-sm-9">
                     <textarea id="description" th:field="*{description}" class="form-control" rows="4" placeholder="Edit the description"></textarea>
                 </div>
@@ -144,12 +157,12 @@
 
             <!-- File Upload Field -->
             <div class="mb-4 row">
-                <label for="document" class="col-sm-3 col-form-label fw-bold">Document</label>
+                <label for="document" class="col-sm-3 col-form-label text-start fw-bold">Document</label>
                 <div class="col-sm-9">
                     <span th:text="${formApplyDTO.fileName}"></span><br><br>
                     <input type="file" id="document" name="documentFile">
                 </div>
-            </div>            
+            </div>
 
             <!-- Buttons -->
             <div class="row">

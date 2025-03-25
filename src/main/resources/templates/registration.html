@@ -32,10 +32,13 @@
 
         <form th:action="@{/submit_registration}" th:object="${user}" method="post">
 
-            <div th:if="${error}" class="alert alert-danger" role="alert">
-                <p th:text="${error}"></p>
+            <div class="mb-3">
+                <label for="staff_id" class="form-label fw-bold">Staff ID</label>
+                <input type="text" id="staff_id" th:field="*{staffId}" class="form-control"
+                       placeholder="Enter Staff ID 25-xxxxx 26-xxxxx" required>
+                <span th:if="${staffIdError}" class="text-danger" th:text="${staffIdError}"></span>
+                <span th:if="${staffIdFormatError}" class="text-danger" th:text="${staffIdFormatError}"></span>
             </div>
-
 
             <div class="mb-3">
                 <label for="name" class="form-label fw-bold">Full Name</label>
@@ -45,6 +48,7 @@
             <div class="mb-3">
                 <label for="email" class="form-label fw-bold">Email Address</label>
                 <input type="email" id="email" th:field="*{email}" class="form-control" placeholder="Enter Email" required>
+                <span th:if="${emailError}" class="text-danger" th:text="${emailError}"></span>
             </div>
 
             <div class="mb-3">
@@ -71,7 +75,7 @@
             <div class="mb-3">
                 <label for="position" class="form-label fw-bold">Position</label>
 
-<!--            onchange="toggleFields()" triggers JavaScript when selection changes-->
+                <!--            onchange="toggleFields()" triggers JavaScript when selection changes-->
                 <select id="position" th:field="*{position.id}" class="form-select" required onchange="toggleFields()">
                     <option value="" disabled selected>Select Position</option>
                     <option th:each="pos : ${positions}" th:value="${pos.id}" th:text="${pos.name}"
@@ -137,7 +141,7 @@
 </body>
 
 <script>
-    <!--Show Team, Department, Multi Departments fields according to position..........................................................-->
+    <!--Show Team, Department, Multi Departments fields according to position-->
         function toggleFields() {
             var positionSelect = document.getElementById("position");
             var selectedOption = positionSelect.options[positionSelect.selectedIndex];
@@ -162,7 +166,7 @@
             }
         }
 
-    <!-- Show Role's Values According to Position-->
+    // Show Role's Values According to Position
         function updateRoleOptions() {
         var positionSelect = document.getElementById("position");
         var selectedOption = positionSelect.options[positionSelect.selectedIndex];
@@ -186,7 +190,7 @@
     }
 
 
-<!--Get Teams by Selected Department............................................................................-->
+
 document.addEventListener("DOMContentLoaded", function () {
     toggleFields(); // Ensure correct visibility on page load
     updateRoleOptions(); // Ensure correct roles are shown on page load
@@ -211,7 +215,6 @@ document.addEventListener("DOMContentLoaded", function () {
             fetch(`/getTeamsByDepartment?departmentId=${departmentId}&position=${position}`)
                 .then(response => response.json())
                 .then(data => {
-
                     teamDropdown.innerHTML = '<option value="">Select Team</option>';
                     data.forEach(team => {
                         let option = document.createElement("option");
@@ -284,7 +287,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 
-<!--    Password Visibality -->
+    // Password Visibility
         document.getElementById("togglePassword").addEventListener("click", function() {
         let passwordField = document.getElementById("password");
         let icon = this;

@@ -54,8 +54,8 @@ public class AdminService {
     private PasswordEncoder passwordEncoder;
 
     // --- Authentication and Registration ---
-    public Optional<UsersEntity> authenticate(String email, String password) {
-        Optional<UsersEntity> user = usersRepository.findByEmail(email);
+    public Optional<UsersEntity> authenticateByStaffId(String staffId, String password) {
+        Optional<UsersEntity> user = usersRepository.findByStaffId(staffId);
 
         // Use BCrypt to match the hashed password with the entered password
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -63,8 +63,9 @@ public class AdminService {
         return user.filter(u -> passwordEncoder.matches(password, u.getPassword()));  // Use BCrypt to compare hashed passwords
     }
 
-    public String authenticateAndRedirect(String email, String password, Model model, HttpSession session) {
-        Optional<UsersEntity> user = authenticate(email, password);
+    public String authenticateAndRedirect(String staffId, String password, Model model, HttpSession session) {
+        // Authenticate using staff_id instead of email
+        Optional<UsersEntity> user = authenticateByStaffId(staffId, password);
 
         if (user.isPresent()) {
             UsersEntity loggedInUser = user.get();
@@ -80,9 +81,9 @@ public class AdminService {
             String positionName = loggedInUser.getPosition().getName();
 
             // Redirect based on role and position
-            return redirectBasedOnRole(roleName, positionName , model);
+            return redirectBasedOnRole(roleName, positionName, model);
         } else {
-            model.addAttribute("error", "Invalid email or password");
+            model.addAttribute("error", "Invalid staff ID or password");
             return "login";
         }
     }
@@ -185,9 +186,30 @@ public class AdminService {
     public String registerUser(UsersDTO usersDTO, Model model) {
 
         try {
+            // Validate the staffId format
+            String staffId = usersDTO.getStaffId();
+            if (!isValidStaffId(staffId)) {
+                model.addAttribute("staffIdFormatError", "Invalid staff ID format. Staff ID should be in the format '26-xxxxx' or '25-xxxxx'");
+                model.addAttribute("positions", positionRepository.findAll());
+                model.addAttribute("teams", teamRepository.findAll());
+                model.addAttribute("departments", departmentRepository.findAll());
+                model.addAttribute("roles", roleRepository.findAll());
+                return "registration"; // Return to registration page with error
+            }
+
+            // Check if staff_id already exists
+            if (usersRepository.existsByStaffId(staffId)) {
+                model.addAttribute("staffIdError", "This staff ID is already in use. Please use a different staff ID.");
+                model.addAttribute("positions", positionRepository.findAll());
+                model.addAttribute("teams", teamRepository.findAll());
+                model.addAttribute("departments", departmentRepository.findAll());
+                model.addAttribute("roles", roleRepository.findAll());
+                return "registration"; // Return to registration page with error
+            }
+
             // Check if email already exists
             if (usersRepository.existsByEmail(usersDTO.getEmail())) {
-                model.addAttribute("error", "This email has already been used by another user.");
+                model.addAttribute("emailError", "This email is already in use. Please use a different email.");
                 model.addAttribute("positions", positionRepository.findAll());
                 model.addAttribute("teams", teamRepository.findAll());
                 model.addAttribute("departments", departmentRepository.findAll());
@@ -314,6 +336,16 @@ public class AdminService {
         return usersRepository.existsByEmailAndIdNot(email, userId);
     }
 
+    public boolean isStaffIdTaken(String staffId, Long userId) {
+        // Check if the staff ID is already taken by another user, excluding the current user
+        return usersRepository.existsByStaffIdAndIdNot(staffId, userId);
+    }
+
+    public boolean isValidStaffId(String staffId) {
+        String regex = "^(25|26)-\\d{5}$";
+        return staffId != null && staffId.matches(regex);
+    }
+
 
     // User details View or Edit or Delete........................................................
 
@@ -337,7 +369,7 @@ public class AdminService {
             data.put("departmentIds", departmentIds);  // Add departmentIds to data
         } else {
             List<DepartmentEntity> department = departmentRepository.findAll();
-            data.put("department", department);
+            data.put("departments", department);
         }
 
         return data;
@@ -472,7 +504,6 @@ public class AdminService {
 
         data.put("teams", teams);
         data.put("assignedTeam", assignedTeam);
-//        data.put("assignedTeamId", assignedTeamId);
 
 
         return data;
@@ -529,6 +560,7 @@ public class AdminService {
         }
 
         // **Step 3: Update user details**
+        userEntity.setStaffId(userDTO.getStaffId());
         userEntity.setName(userDTO.getName());
         userEntity.setEmail(userDTO.getEmail());
         userEntity.setPhone(userDTO.getPhone());
@@ -661,8 +693,10 @@ public class AdminService {
     public List<UsersDTO> searchUsersByIdOrName(String idQuery, String nameQuery) {
         if (idQuery != null && !idQuery.isEmpty()) {
             try {
-                Long id = Long.parseLong(idQuery);
-                Optional<UsersEntity> userEntity = usersRepository.findById(id);
+                String staffId = idQuery;  // No need for parseLong
+                Optional<UsersEntity> userEntity = usersRepository.findByStaffId(staffId);
+
+
                 return userEntity.map(entity -> Collections.singletonList(modelMapper.map(entity, UsersDTO.class)))
                         .orElse(Collections.emptyList());
             } catch (NumberFormatException e) {

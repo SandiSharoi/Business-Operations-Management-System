@@ -43,7 +43,7 @@ public class FormService {
 
     @Autowired
     private TeamRepository teamRepository;
-    
+
     @Autowired
     private AssignApproverRepository assignApproverRepository;
 
@@ -56,6 +56,20 @@ public class FormService {
     @Autowired
     private EmailSender  emailSender;
 
+//    public FormApplyDTO getFormApply(Long formApplyId) {
+//        FormApplyEntity formApplyEntity = formApplyRepository.findByFormApplyId(formApplyId);
+//
+//        // Check if data is being retrieved properly
+//        System.out.println("Actual Start Hour: " + formApplyEntity.getActualStartHour());
+//        System.out.println("Actual End Hour: " + formApplyEntity.getActualEndHour());
+//
+//        FormApplyDTO formApplyDTO = new FormApplyDTO();
+//        formApplyDTO.setActualStartHour(formApplyEntity.getActualStartHour());
+//        formApplyDTO.setActualEndHour(formApplyEntity.getActualEndHour());
+//
+//        return formApplyDTO;
+//    }
+
     @SuppressWarnings("null")
     public List<AssignApproverDTO> getApproversForUser(UsersEntity user) {
         TeamEntity team = user.getTeam(); // Check team_id first
@@ -66,10 +80,10 @@ public class FormService {
             }
         }
 
-    
+
         String userPosition = user.getPosition().getName();
         List<AssignApproverDTO> approvers = new ArrayList<>();
-    
+
         // Logic for PM position (show all PM, DH, DivH)
         if ("Project Manager".equalsIgnoreCase(userPosition)) {
             approvers.add(createAssignApproverDTO(team.getDh(), "Department Head"));
@@ -85,30 +99,30 @@ public class FormService {
             approvers.add(createAssignApproverDTO(team.getDh(), "Department Head"));
             approvers.add(createAssignApproverDTO(team.getDivh(), "Division Head"));
         }
-    
+
         // Remove null values
         approvers.removeIf(Objects::isNull);
 
         return approvers;
     }
-    
+
     // Helper method to find a team using department
     private TeamEntity findTeamByDepartment(DepartmentEntity department) {
         List<TeamEntity> teams = teamRepository.findAllByDepartment(department);
-    
+
         if (teams.isEmpty()) {
             throw new IllegalArgumentException("No team found for the given department");
         }
-    
+
         // Logic to select one team (e.g., the team with the smallest ID)
         return teams.stream()
                 .filter(team -> team.getDh() != null && team.getDivh() != null) // Ensure DH and DivH are set
                 .min(Comparator.comparing(TeamEntity::getId)) // Example: Select the team with the smallest ID
                 .orElseThrow(() -> new IllegalArgumentException("No valid team found for the given department"));
     }
-    
 
-    
+
+
     private AssignApproverDTO createAssignApproverDTO(UsersEntity approver, String position) {
         if (approver == null) {
             return null;
@@ -125,16 +139,17 @@ public class FormService {
         }
 
 
-        
+
         return dto;
     }
- 
-    // Updated saveFormApply to return formId    
+
+    // Updated saveFormApply to return formId
     public Long saveFormApply(FormApplyDTO formApplyDTO, List<String> assignedTo, String highestApprover, UsersEntity loggedInUser) {
         FormApplyEntity formApplyEntity = new FormApplyEntity();
         formApplyEntity.setEmployee(loggedInUser);
         formApplyEntity.setAppliedDate(LocalDate.now());
-        formApplyEntity.setTask(formApplyDTO.getTask());
+        formApplyEntity.setProjectId(formApplyDTO.getProjectId());
+        formApplyEntity.setProjectName(formApplyDTO.getProjectName());
         formApplyEntity.setPlannedDate(formApplyDTO.getPlannedDate());
         formApplyEntity.setPlannedStartHour(formApplyDTO.getPlannedStartHour());
         formApplyEntity.setPlannedEndHour(formApplyDTO.getPlannedEndHour());
@@ -145,15 +160,15 @@ public class FormService {
         formApplyEntity.setWorkType(formApplyDTO.getWorkType());
         formApplyEntity.setDescription(formApplyDTO.getDescription());
         formApplyEntity.setFileName(formApplyDTO.getFileName());
-    
+
         int noOfApprovers = (int) assignedTo.stream()
-            .filter(approver -> List.of("Project Manager", "Department Head", "Division Head").contains(approver))
-            .count();
+                .filter(approver -> List.of("Project Manager", "Department Head", "Division Head").contains(approver))
+                .count();
         formApplyEntity.setNo_of_approvers(noOfApprovers);
-    
+
         // Set the highest approver
         formApplyEntity.setHighest_approver(highestApprover);
-    
+
         // Save formApplyEntity and return its ID
         formApplyRepository.save(formApplyEntity);
 
@@ -161,11 +176,11 @@ public class FormService {
         if (team == null) {
             throw new IllegalArgumentException("User has no valid team or department for approvers.");
         }
-    
+
         // Determine the lowest approver
         String lowestApproverPosition = determineLowestApprover(assignedTo);
         UsersEntity lowestApprover = getApproverByPosition(team, lowestApproverPosition);
-        
+
         for (String approverPosition : assignedTo) {
             UsersEntity approver = switch (approverPosition) {
                 case "Project Manager" -> team.getPm();
@@ -173,17 +188,17 @@ public class FormService {
                 case "Division Head" -> team.getDivh();
                 default -> null;
             };
-    
+
             if (approver == null) {
                 throw new IllegalArgumentException("Approver for position " + approverPosition + " is not defined.");
             }
-    
+
             AssignApproverEntity assignApproverEntity = new AssignApproverEntity();
             assignApproverEntity.setFormApply(formApplyEntity);
             assignApproverEntity.setApprover(approver);
             assignApproverEntity.setApproverPosition(approverPosition);
             assignApproverEntity.setFormStatus("Pending");
-    
+
             assignApproverRepository.save(assignApproverEntity);
 
             // Publish event for mail notification to the lowest approver immediately
@@ -201,7 +216,7 @@ public class FormService {
     }
 
 
-    
+
     private void sendNotificationToApprover(UsersEntity lowestApprover, FormApplyEntity formApply) {
         String recipientEmail = lowestApprover.getEmail();
         String subject = "New Form Approval Request";
@@ -216,10 +231,10 @@ public class FormService {
         } catch (MessagingException | UnsupportedEncodingException e) {
             log.error("❌ Failed to send notification email to {}: {}", recipientEmail, e.getMessage());
         }
-            
+
     }
-    
-    
+
+
     private String determineLowestApprover(List<String> assignedTo) {
         List<String> hierarchy = Arrays.asList("Project Manager", "Department Head", "Division Head");
         for (String position : hierarchy) {
@@ -237,9 +252,9 @@ public class FormService {
             case "Division Head" -> team.getDivh();
             default -> null;
         };
-    }   
+    }
 
-  
+
     public TeamEntity getTeamForUser(UsersEntity user) {
         TeamEntity team = user.getTeam();
         if (team == null) {
@@ -250,7 +265,7 @@ public class FormService {
         }
         return team;
     }
-    
+
 
     // Check Form Status......................................................
 
@@ -260,7 +275,7 @@ public class FormService {
                 .map(entity -> modelMapper.map(entity, FormApplyDTO.class))
                 .collect(Collectors.toList());
     }
-    
+
 
     @Transactional
     public FormApplyDTO getFormDetails(Long formId) {
@@ -282,14 +297,15 @@ public class FormService {
                 .orElseThrow(() -> new IllegalArgumentException("Form not found with ID: " + formApplyId));
         return modelMapper.map(formApplyEntity, FormApplyDTO.class);
     }
-    
+
     @Transactional
     public void updateFormApply(FormApplyDTO formApplyDTO) {
         FormApplyEntity formApplyEntity = formApplyRepository.findById(formApplyDTO.getFormApplyId())
                 .orElseThrow(() -> new IllegalArgumentException("Form not found with ID: " + formApplyDTO.getFormApplyId()));
-    
+
         // Update only editable fields
-        if (formApplyDTO.getTask() != null) formApplyEntity.setTask(formApplyDTO.getTask());
+        if (formApplyDTO.getProjectId() != null) formApplyEntity.setProjectId(formApplyDTO.getProjectId());
+        if (formApplyDTO.getProjectName() != null) formApplyEntity.setProjectName(formApplyDTO.getProjectName());
         if (formApplyDTO.getPlannedDate() != null) formApplyEntity.setPlannedDate(formApplyDTO.getPlannedDate());
         if (formApplyDTO.getPlannedStartHour() != null) formApplyEntity.setPlannedStartHour(formApplyDTO.getPlannedStartHour());
         if (formApplyDTO.getPlannedEndHour() != null) formApplyEntity.setPlannedEndHour(formApplyDTO.getPlannedEndHour());
@@ -299,10 +315,10 @@ public class FormService {
         if (formApplyDTO.getOvertimeDate() != null) formApplyEntity.setOvertimeDate(formApplyDTO.getOvertimeDate());
         if (formApplyDTO.getWorkType() != null) formApplyEntity.setWorkType(formApplyDTO.getWorkType());
         if (formApplyDTO.getDescription() != null) formApplyEntity.setDescription(formApplyDTO.getDescription());
-    
+
         formApplyEntity.setAppliedDate(LocalDate.now()); // Update applied date automatically
         formApplyRepository.save(formApplyEntity);
-    
+
         //  Handle file update (if a new file was uploaded)
         if (formApplyDTO.getFileName() != null && !formApplyDTO.getFileName().isEmpty()) {
             // Delete the old file before saving the new one
@@ -330,7 +346,8 @@ public class FormService {
 
         //  Debugging Logs
         System.out.println("Updated Entity: " + formApplyEntity);
-        System.out.println("Task: " + formApplyEntity.getTask());
+        System.out.println("Project ID: " + formApplyEntity.getProjectId());
+        System.out.println("Project Name: " + formApplyEntity.getProjectName());
         System.out.println("Planned Date: " + formApplyEntity.getPlannedDate());
         System.out.println("Planned Start Hour: " + formApplyEntity.getPlannedStartHour());
         System.out.println("Planned End Hour: " + formApplyEntity.getPlannedEndHour());
@@ -349,7 +366,14 @@ public class FormService {
 
         form.setFileName(fileName);
         formApplyRepository.save(form);
-    }    
-    
+    }
+
+    public boolean existsByProjectId(String projectId) {
+        return formApplyRepository.existsByProjectId(projectId);
+    }
+
+    public boolean existsByProjectIdExcludingForm(String projectId, Long formId) {
+        return formApplyRepository.existsByProjectIdAndFormApplyIdNot(projectId, formId);
+    }
 
 }

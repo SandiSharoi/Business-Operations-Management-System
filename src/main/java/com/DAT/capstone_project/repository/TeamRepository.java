@@ -134,5 +134,6 @@ public interface TeamRepository extends JpaRepository<TeamEntity, Integer>{
     void unassignDivhFromDepartments(@Param("divhId") Long divhId, @Param("departmentIds") List<Long> departmentIds);
 
 
+    Optional<TeamEntity> findByNameIgnoreCaseAndDepartmentIdAndIdNot(String name, Integer departmentId, Integer id);
 
 }

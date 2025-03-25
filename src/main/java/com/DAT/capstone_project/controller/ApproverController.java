@@ -62,10 +62,12 @@ public class ApproverController {
         UsersEntity loggedInUser = (UsersEntity) session.getAttribute("loggedInUser");
         Long approverId = loggedInUser.getId();
 
+        model.addAttribute("approverId", approverId);
+
         // Fetch approved/rejected forms
         List<FormApplyDTO> pastDecisions = approverService.getPastDecisionsForApprover(approverId);
-        model.addAttribute("pastDecisions", pastDecisions);
 
+        model.addAttribute("pastDecisions", pastDecisions);
         return "form_decisions_history";
     }
 }

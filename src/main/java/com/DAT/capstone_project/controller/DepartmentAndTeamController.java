@@ -33,7 +33,7 @@ public class DepartmentAndTeamController {
 
 
     // Department ..............................................................
-   
+
     @GetMapping("/department_list")
     public String departmentlistPage(Model model) {
         return departmentAndTeamService.showdepartmentListPage(model);
@@ -42,7 +42,7 @@ public class DepartmentAndTeamController {
     @PostMapping("/department_registration")
     public String departmentRegistration(RedirectAttributes redirectAttributes,
                 @ModelAttribute DepartmentEntity department) {
-        
+
         if (departmentAndTeamService.isDepartmentNameDuplicate(department.getName())) {
                 redirectAttributes.addFlashAttribute("error", "Department Name Already Exists");
                 return "redirect:/department_list"; // Redirect back to the department list page
@@ -62,7 +62,7 @@ public class DepartmentAndTeamController {
         departmentAndTeamService.updateDepartment(departmentDTO);
         redirectAttributes.addFlashAttribute("message", "Department updated successfully!");
         return "redirect:/department_list"; // Redirect back to the department list page
-    }    
+    }
 
     // Team ................................................................................
 
@@ -70,11 +70,11 @@ public class DepartmentAndTeamController {
     public String teamlistPage(Model model) {
         return departmentAndTeamService.showteamListPage(model);
     }
-     
+
     @PostMapping("/team_registration")
     public String teamregistrationPost(Model model, @ModelAttribute TeamEntity teams,
                 RedirectAttributes redirectAttributes) {
-            
+
         // Save the populated `teams` object received from the form
         Optional<TeamEntity> teamOptional = departmentAndTeamService.isTeamNameUpdate(teams);
 
@@ -103,7 +103,7 @@ public class DepartmentAndTeamController {
 
         Optional<TeamEntity> teamOptional = departmentAndTeamService.isDuplicateTeamNameOnUpdate(teamDTO);
 
-        if (teamOptional.isPresent()) {
+        if (departmentAndTeamService.isDuplicateTeamNameOnUpdate(teamDTO).isPresent()) {
             redirectAttributes.addFlashAttribute("error", "Team Name Already Exists");
             return "redirect:/team_list";
         }

@@ -23,6 +23,14 @@
         <h1 class="text-center mb-4 fw-bold text-3d" style="color: #4d76b8;">User Details</h1>
 
         <form>
+            <!-- Staff ID -->
+            <div class="mb-3 row">
+                <label class="col-sm-3 col-form-label fw-bold form-label">Staff ID</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" th:value="${user.staffId}" readonly>
+                </div>
+            </div>
+
             <!-- Full Name -->
             <div class="mb-3 row">
                 <label class="col-sm-3 col-form-label fw-bold form-label">Full Name</label>

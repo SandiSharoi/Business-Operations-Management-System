@@ -53,11 +53,11 @@ public class AdminController {
     }
 
     @PostMapping("/login")
-    public String handleLogin(@RequestParam("email") String email,
+    public String handleLogin(@RequestParam("staff_id") String staffId,
                               @RequestParam("password") String password,
                               Model model,
                               HttpSession session) {
-        return adminService.authenticateAndRedirect(email, password, model, session);
+        return adminService.authenticateAndRedirect(staffId, password, model, session);
     }
 
     @GetMapping("/logout")
@@ -156,6 +156,7 @@ public class AdminController {
             model.addAttribute("assignedDepartmentId", data.get("assignedDepartmentId"));
         }
 
+        // ✅ Pass assigned department IDs for highlighting
         if (data.containsKey("assignedDepartmentIds")) {
             model.addAttribute("assignedDepartmentIds", data.get("assignedDepartmentIds"));
         }
@@ -222,8 +223,11 @@ public class AdminController {
         return "registration_list_success";  // Redirect to the success page
     }
 
-
-
+    private boolean isValidStaffId(String staffId) {
+        // Regex for validating staff ID format ('25-00000' or '26-00000')
+        String regex = "^(25|26)-\\d{5}$";  // The regex now checks for 25 or 26 at the start
+        return staffId.matches(regex);
+    }
 
     @PostMapping("/user/delete/{id}")
     public String deleteUser(@PathVariable Long id) {

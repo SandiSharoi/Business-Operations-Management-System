@@ -37,64 +37,57 @@
 
 </head>
 <body>
-    <div class="container mt-5">
-        <h2 class="text-center">Check Form Status</h2>
-        <div class="table-responsive">
-            <table class="table table-striped table-bordered text-center">
-                <thead class="table-primary ">
-                    <tr>
-                        <th>#</th>
-                        <th>Form ID</th>
-                        <th>Task Name</th>
-                        <th>Applied Date</th>
-                        <th>Details</th>
-                        <th>Edit</th>
-                        <th>Form Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Dynamically render forms -->
-                    <tr th:each="form, iterStat : ${forms}">
-                        <td th:text="${iterStat.index + 1}"></td>
-                        <td th:text="${form.formApplyId}"></td>
-                        <td th:text="${form.task}"></td>
-                        <td th:text="${form.appliedDate}"></td>
-
-<!--                        <td class="text-center">-->
-<!--                            <a th:href="@{/form/detail/{formId}(formId=${form.formApplyId}, source='check_form_status')}" class="btn btn-primary btn-sm">View</a>-->
-<!--                        </td>-->
+<div class="container mt-5">
+    <h2 class="text-center">Check Form Status</h2>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered text-center">
+            <thead class="table-primary ">
+            <tr>
+                <th>#</th>
+                <th>Form ID</th>
+                <th>Project ID</th>
+                <th>Project Name</th>
+                <th>Applied Date</th>
+                <th>Details</th>
+                <th>Edit</th>
+                <th>Form Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Dynamically render forms -->
+            <tr th:each="form, iterStat : ${forms}">
+                <td th:text="${iterStat.index + 1}"></td>
+                <td th:text="${form.formApplyId}"></td>
+                <td th:text="${form.projectId}"></td>
+                <td th:text="${form.projectName}"></td>
+                <td th:text="${form.appliedDate}"></td>
 
 
-<!--                        <td th:if="${form.editPermission} == true" class="text-center">-->
-<!--                            <a th:href="@{/form_apply_edit/{id}(id=${form.formApplyId})}" class="btn btn-warning btn-sm">Edit</a>-->
-<!--                        </td>-->
+                <td class="text-center">
+                    <a th:href="@{/form/detail/{formId}(formId=${form.formApplyId}, source='check_form_status')}" class="action-icon view-icon">
+                        <i class="fa-solid fa-eye"></i>
+                    </a>
+                </td>
+
+                <td th:if="${form.editPermission} == true" class="text-center">
+                    <a th:href="@{/form_apply_edit/{id}(id=${form.formApplyId})}"  class="action-icon edit-icon">
+                        <i class="fas fa-pencil-alt"></i>
+
+                    </a>
+                </td>
+
+                <td th:if="${form.editPermission} == false" class="text-center">
+                    <p>No Edit Allow</p>
+                </td>
 
 
-                        <td class="text-center">
-                            <a th:href="@{/form/detail/{formId}(formId=${form.formApplyId}, source='check_form_status')}" class="action-icon view-icon">
-                                <i class="fa-solid fa-eye"></i>
-                            </a>
-                        </td>
-
-                        <td th:if="${form.editPermission} == true" class="text-center">
-                            <a th:href="@{/form_apply_edit/{id}(id=${form.formApplyId})}"  class="action-icon edit-icon">
-                                <i class="fas fa-pencil-alt"></i>
-
-                            </a>
-                        </td>
-
-                        <td th:if="${form.editPermission} == false" class="text-center">
-                            <p>No Edit Allow</p>
-                        </td>
-                        
-
-                        <td th:if="${form.finalFormStatus} == null" class="text-center text-warning fw-bold">Pending</td>
-                        <td th:unless="${form.finalFormStatus} == null" th:text="${form.finalFormStatus}" th:classappend="${form.finalFormStatus == 'Approve' ? 'text-success fw-bold' : (form.finalFormStatus == 'Reject' ? 'text-danger fw-bold' : '')}"
-                        class="text-center"></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                <td th:if="${form.finalFormStatus} == null" class="text-center text-warning fw-bold">Pending</td>
+                <td th:unless="${form.finalFormStatus} == null" th:text="${form.finalFormStatus}" th:classappend="${form.finalFormStatus == 'Approved' ? 'text-success fw-bold' : (form.finalFormStatus == 'Rejected' ? 'text-danger fw-bold' : '')}"
+                    class="text-center"></td>
+            </tr>
+            </tbody>
+        </table>
     </div>
+</div>
 </body>
 </html>
