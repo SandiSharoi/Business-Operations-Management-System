@@ -1,7 +1,10 @@
 package com.DAT.capstone_project.controller;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.DAT.capstone_project.dto.DepartmentDTO;
 import com.DAT.capstone_project.dto.TeamDTO;
@@ -244,16 +247,25 @@ public class AdminController {
         // Add isEditable flag to the model
         model.addAttribute("isEditable", false);
 
-        // Positions, teams, departments, and roles are automatically handled in the service
-        model.addAttribute("positions", positionRepository.findAll());
-        model.addAttribute("teams", teamRepository.findAll());
-        model.addAttribute("departments", departmentRepository.findAll());
-        model.addAttribute("roles", roleRepository.findAll());
+        // Ensure non-null values are passed to the model
+        model.addAttribute("positions", Optional.ofNullable(positionRepository.findAll()).orElse(Collections.emptyList()));
+        model.addAttribute("teams", Optional.ofNullable(teamRepository.findAll()).orElse(Collections.emptyList()));
+        model.addAttribute("departments", Optional.ofNullable(departmentRepository.findAll()).orElse(Collections.emptyList()));
+        model.addAttribute("roles", Optional.ofNullable(roleRepository.findAll()).orElse(Collections.emptyList()));
+
+        // Ensure assignedDepartmentIds is not null
+        List<Long> assignedDepartmentIds = Optional.ofNullable(originalUser.getDepartmentIds())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(Integer::longValue)  // Convert Integer to Long
+                .collect(Collectors.toList());
+        model.addAttribute("assignedDepartmentIds", assignedDepartmentIds);
 
         // Redirect to the user detail page
         return "user_edit";
-
     }
+
+
 
     // Search employee in registration list by name or id...................................................
     @GetMapping("/search")
