@@ -1,7 +1,10 @@
 package com.DAT.capstone_project.controller;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.DAT.capstone_project.dto.DepartmentDTO;
 import com.DAT.capstone_project.dto.TeamDTO;
@@ -50,11 +53,11 @@ public class AdminController {
     }
 
     @PostMapping("/login")
-    public String handleLogin(@RequestParam("email") String email,
+    public String handleLogin(@RequestParam("staff_id") String staffId,
                               @RequestParam("password") String password,
                               Model model,
                               HttpSession session) {
-        return adminService.authenticateAndRedirect(email, password, model, session);
+        return adminService.authenticateAndRedirect(staffId, password, model, session);
     }
 
     @GetMapping("/logout")
@@ -123,7 +126,7 @@ public class AdminController {
 
     @GetMapping("/user/edit/{id}")
     public Object editUserDetails( @PathVariable Long id, @RequestParam(required = false) String positionName,
-                                   @RequestHeader(value = "X-Requested-With", required = false) String requestedWith,
+                                   @RequestHeader Map<String, String> headers,  // Capture all headers
                                    Model model) {
 
         Map<String, Object> data = adminService.getUserDetailsEdit(id, true, positionName);
@@ -131,9 +134,15 @@ public class AdminController {
         logger.info("First User Edit API called. Position: {}", positionName);
         logger.info("First eturning data: {}", data);
 
+        logger.info("Received Headers: {}", headers);
+
+        String requestedWith = headers.get("x-requested-with");  // Try getting it manually
+        logger.info("Requested-With Header: {}", requestedWith);
+
+
         // Check if the request is an AJAX request
-        if ("XMLHttpRequest".equals(requestedWith)) {
-            return ResponseEntity.ok(data);
+        if ("XMLHttpRequest".equalsIgnoreCase(requestedWith)) {  // Ignore case
+            return ResponseEntity.ok(adminService.getUserDetailsEdit(id, true, positionName));
         }
 
         // Regular request - load the Thymeleaf page
@@ -147,6 +156,7 @@ public class AdminController {
             model.addAttribute("assignedDepartmentId", data.get("assignedDepartmentId"));
         }
 
+        // ✅ Pass assigned department IDs for highlighting
         if (data.containsKey("assignedDepartmentIds")) {
             model.addAttribute("assignedDepartmentIds", data.get("assignedDepartmentIds"));
         }
@@ -186,8 +196,18 @@ public class AdminController {
 
     @PostMapping("/user/update/{id}")
     public String updateUser(@PathVariable Long id, @ModelAttribute("user") UsersDTO userDTO, Model model) {
+        // Convert department ID (if present) to DepartmentDTO
+        if (userDTO.getDepartment() != null && userDTO.getDepartment().getId() != null) {
+            Integer departmentId = userDTO.getDepartment().getId(); // Ensure it's an Integer
+            DepartmentDTO departmentDTO = new DepartmentDTO();
+            departmentDTO.setId(departmentId);
+            userDTO.setDepartment(departmentDTO); // Set the converted DTO
+        } else {
+            userDTO.setDepartment(null);
+        }
+
         // Check if the email already exists (excluding the current user)
-        if (adminService.isEmailTaken(  userDTO.getEmail(), id)) {
+        if (adminService.isEmailTaken(userDTO.getEmail(), id)) {
             model.addAttribute("emailError", "This email is already in use. Please use a different email.");
 
             // Get user details + dropdown lists
@@ -201,6 +221,12 @@ public class AdminController {
         // Proceed with updating the user
         adminService.updateUser(userDTO);
         return "registration_list_success";  // Redirect to the success page
+    }
+
+    private boolean isValidStaffId(String staffId) {
+        // Regex for validating staff ID format ('25-00000' or '26-00000')
+        String regex = "^(25|26)-\\d{5}$";  // The regex now checks for 25 or 26 at the start
+        return staffId.matches(regex);
     }
 
     @PostMapping("/user/delete/{id}")
@@ -225,16 +251,25 @@ public class AdminController {
         // Add isEditable flag to the model
         model.addAttribute("isEditable", false);
 
-        // Positions, teams, departments, and roles are automatically handled in the service
-        model.addAttribute("positions", positionRepository.findAll());
-        model.addAttribute("teams", teamRepository.findAll());
-        model.addAttribute("departments", departmentRepository.findAll());
-        model.addAttribute("roles", roleRepository.findAll());
+        // Ensure non-null values are passed to the model
+        model.addAttribute("positions", Optional.ofNullable(positionRepository.findAll()).orElse(Collections.emptyList()));
+        model.addAttribute("teams", Optional.ofNullable(teamRepository.findAll()).orElse(Collections.emptyList()));
+        model.addAttribute("departments", Optional.ofNullable(departmentRepository.findAll()).orElse(Collections.emptyList()));
+        model.addAttribute("roles", Optional.ofNullable(roleRepository.findAll()).orElse(Collections.emptyList()));
+
+        // Ensure assignedDepartmentIds is not null
+        List<Long> assignedDepartmentIds = Optional.ofNullable(originalUser.getDepartmentIds())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(Integer::longValue)  // Convert Integer to Long
+                .collect(Collectors.toList());
+        model.addAttribute("assignedDepartmentIds", assignedDepartmentIds);
 
         // Redirect to the user detail page
         return "user_edit";
-
     }
+
+
 
     // Search employee in registration list by name or id...................................................
     @GetMapping("/search")

@@ -72,11 +72,12 @@ public class DataInitializer implements CommandLineRunner {
 
             if (adminRole != null && position != null) {
                 UsersEntity admin = new UsersEntity();
+                admin.setStaffId("25-00001");
                 admin.setName("Admin User");
                 admin.setEmail("admin@dat.com");
-                String hashedPassword = passwordEncoder.encode("Dat0@123");
+                String hashedPassword = passwordEncoder.encode("Dat0@admin");
                 admin.setPassword(hashedPassword);
-                admin.setPhone("1234567890");
+                admin.setPhone("09894839444");
                 admin.setRole(adminRole);
                 admin.setPosition(position);
                 admin.setDepartment(department);

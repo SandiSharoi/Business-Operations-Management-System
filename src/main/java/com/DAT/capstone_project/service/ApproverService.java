@@ -51,33 +51,34 @@ public class ApproverService {
     public List<FormApplyDTO> getVisibleFormsForApprover(Long approverId) {
         // Fetch forms assigned to the current approver
         List<AssignApproverEntity> assignedForms = assignApproverRepository.findByApproverId(approverId);
-    
+
         return assignedForms.stream()
-            // Filter out forms that are already approved or rejected
-            .filter(assignApprover -> 
-                "Pending".equalsIgnoreCase(assignApprover.getFormStatus()) && 
-                isVisibleToApprover(assignApprover, approverId)
-            )
-            .map(assignApprover -> {
-                FormApplyDTO formDTO = new FormApplyDTO();
-                formDTO.setFormApplyId(assignApprover.getFormApply().getFormApplyId());
-                formDTO.setTask(assignApprover.getFormApply().getTask());
-                formDTO.setAppliedDate(assignApprover.getFormApply().getAppliedDate());
-                UsersDTO employeeDTO = modelMapper.map(assignApprover.getFormApply().getEmployee(), UsersDTO.class);
-                formDTO.setEmployee(employeeDTO);
-                return formDTO;
-            })
-            .collect(Collectors.toList());
+                // Filter out forms that are already approved or rejected
+                .filter(assignApprover ->
+                        "Pending".equalsIgnoreCase(assignApprover.getFormStatus()) &&
+                                isVisibleToApprover(assignApprover, approverId)
+                )
+                .map(assignApprover -> {
+                    FormApplyDTO formDTO = new FormApplyDTO();
+                    formDTO.setFormApplyId(assignApprover.getFormApply().getFormApplyId());
+                    formDTO.setProjectId(assignApprover.getFormApply().getProjectId());
+                    formDTO.setProjectName(assignApprover.getFormApply().getProjectName());
+                    formDTO.setAppliedDate(assignApprover.getFormApply().getAppliedDate());
+                    UsersDTO employeeDTO = modelMapper.map(assignApprover.getFormApply().getEmployee(), UsersDTO.class);
+                    formDTO.setEmployee(employeeDTO);
+                    return formDTO;
+                })
+                .collect(Collectors.toList());
     }
-    
+
     private boolean isVisibleToApprover(AssignApproverEntity assignApprover, Long approverId) {
         FormApplyEntity formApply = assignApprover.getFormApply();
         List<AssignApproverEntity> approvers = assignApproverRepository.findByFormApply_FormApplyId(formApply.getFormApplyId());
 
         // Determine the positions assigned to this form
         Set<String> assignedPositions = approvers.stream()
-            .map(AssignApproverEntity::getApproverPosition)
-            .collect(Collectors.toSet());
+                .map(AssignApproverEntity::getApproverPosition)
+                .collect(Collectors.toSet());
 
         String approverPosition = assignApprover.getApproverPosition();
 
@@ -88,25 +89,25 @@ public class ApproverService {
 
         // Check if all lower approvers have approved
         boolean allLowerApproversApproved = approvers.stream()
-            .filter(a -> isLowerPosition(a.getApproverPosition(), approverPosition))
-            .allMatch(a -> "Approve".equalsIgnoreCase(a.getFormStatus()));
+                .filter(a -> isLowerPosition(a.getApproverPosition(), approverPosition))
+                .allMatch(a -> "Approved".equalsIgnoreCase(a.getFormStatus()));
 
         // If any lower approver rejected the form, it should not be visible
         boolean anyLowerApproverRejected = approvers.stream()
-            .filter(a -> isLowerPosition(a.getApproverPosition(), approverPosition))
-            .anyMatch(a -> "Reject".equalsIgnoreCase(a.getFormStatus()));
+                .filter(a -> isLowerPosition(a.getApproverPosition(), approverPosition))
+                .anyMatch(a -> "Rejected".equalsIgnoreCase(a.getFormStatus()));
 
         return allLowerApproversApproved && !anyLowerApproverRejected;
     }
 
 
-@Transactional
+    @Transactional
     public void approveForm(Long formId, Long approverId) {
         AssignApproverEntity approver = assignApproverRepository
                 .findByFormApply_FormApplyIdAndApproverId(formId, approverId)
                 .orElseThrow(() -> new IllegalArgumentException("Approver not assigned to this form"));
 
-        approver.setFormStatus("Approve");
+        approver.setFormStatus("Approved");
         assignApproverRepository.save(approver);
 
         FormApplyEntity formApply = formApplyRepository.findById(formId)
@@ -124,7 +125,7 @@ public class ApproverService {
                     .orElse(null);
 
             if (nextAssignApprover != null && nextAssignApprover.getFormStatus().equals("Pending")) {
-                
+
                 // Send notification to the next approver
                 sendNotificationToApprover(nextAssignApprover, formApply);
             }
@@ -132,7 +133,7 @@ public class ApproverService {
 
         // If the current approver is the highest approver, finalize the form status
         if (approver.getApproverPosition().equalsIgnoreCase(formApply.getHighest_approver())) {
-            formApply.setFinalFormStatus("Approve");
+            formApply.setFinalFormStatus("Approved");
             formApplyRepository.save(formApply);
             // Publish event for mail notification to the form submitter..................
             eventPublisher.publishEvent(new FormStatusChangeEvent(this, formApply));
@@ -145,7 +146,7 @@ public class ApproverService {
                 .findByFormApply_FormApplyIdAndApproverId(formId, approverId)
                 .orElseThrow(() -> new IllegalArgumentException("Approver not assigned to this form"));
 
-        approver.setFormStatus("Reject");
+        approver.setFormStatus("Rejected");
         assignApproverRepository.save(approver);
 
         // Automatically reject for all higher approvers
@@ -155,14 +156,14 @@ public class ApproverService {
                 .collect(Collectors.toList());
 
         higherApprovers.forEach(higherApprover -> {
-            higherApprover.setFormStatus("Reject");
+            higherApprover.setFormStatus("Rejected");
             assignApproverRepository.save(higherApprover);
         });
 
         FormApplyEntity formApply = formApplyRepository.findById(formId)
                 .orElseThrow(() -> new IllegalArgumentException("Form not found with ID: " + formId));
-                
-        formApply.setFinalFormStatus("Reject");
+
+        formApply.setFinalFormStatus("Rejected");
         formApplyRepository.save(formApply);
         formApply.setEditPermission(false); // Disable editing
 
@@ -195,9 +196,9 @@ public class ApproverService {
         } catch (MessagingException | UnsupportedEncodingException e) {
             log.error("❌ Failed to send notification email to {}: {}", recipientEmail, e.getMessage());
         }
-            
+
     }
-    
+
 
     private boolean isHigherPosition(String higherPosition, String currentPosition) {
         List<String> hierarchy = Arrays.asList("Project Manager", "Department Head", "Division Head");
@@ -211,7 +212,7 @@ public class ApproverService {
         int currentIndex = hierarchy.indexOf(currentPosition);
 
         return assignedPositions.stream()
-            .allMatch(position -> hierarchy.indexOf(position) > currentIndex);
+                .allMatch(position -> hierarchy.indexOf(position) > currentIndex);
     }
 
     private boolean isLowerPosition(String lowerPosition, String currentPosition) {
@@ -238,15 +239,24 @@ public class ApproverService {
                     // Check if any lower approver rejected the form
                     boolean anyLowerApproverRejected = approvers.stream()
                             .filter(a -> isLowerPosition(a.getApproverPosition(), assignApprover.getApproverPosition()))
-                            .anyMatch(a -> "Reject".equalsIgnoreCase(a.getFormStatus()));
+                            .anyMatch(a -> "Rejected".equalsIgnoreCase(a.getFormStatus()));
 
                     return !anyLowerApproverRejected;
                 })
                 .map(assignApprover -> {
                     FormApplyDTO formDTO = new FormApplyDTO();
                     formDTO.setFormApplyId(assignApprover.getFormApply().getFormApplyId());
-                    formDTO.setTask(assignApprover.getFormApply().getTask());
-                    formDTO.setAppliedDate(assignApprover.getFormApply().getAppliedDate());
+                    formDTO.setProjectId(assignApprover.getFormApply().getProjectId());
+                    formDTO.setProjectName(assignApprover.getFormApply().getProjectName());
+                    formDTO.setPlannedDate(assignApprover.getFormApply().getPlannedDate());
+                    formDTO.setPlannedStartHour(assignApprover.getFormApply().getPlannedStartHour());
+                    formDTO.setActualDate(assignApprover.getFormApply().getActualDate());
+                    formDTO.setActualStartHour(assignApprover.getFormApply().getActualStartHour());
+                    formDTO.setActualEndHour(assignApprover.getFormApply().getActualEndHour());
+                    formDTO.setOvertimeDate(assignApprover.getFormApply().getOvertimeDate());
+                    formDTO.setWorkType(assignApprover.getFormApply().getWorkType());
+                    formDTO.setDescription(assignApprover.getFormApply().getDescription());
+                    formDTO.setFileName(assignApprover.getFormApply().getFileName());
                     formDTO.setFormStatus(assignApprover.getFormStatus()); // Include status
                     UsersDTO employeeDTO = modelMapper.map(assignApprover.getFormApply().getEmployee(), UsersDTO.class);
                     formDTO.setEmployee(employeeDTO);

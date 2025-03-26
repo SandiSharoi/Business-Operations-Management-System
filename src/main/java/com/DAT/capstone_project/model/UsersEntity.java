@@ -17,6 +17,10 @@ public class UsersEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "staff_id", nullable = false, unique = true)
+    @Pattern(regexp = "^(26|25)-\\d{5}$", message = "Invalid staff ID format. Use '26-xxxxx' or '25-xxxxx'.")
+    private String staffId;
+
     private String name;
     private String email;
 

@@ -20,7 +20,7 @@ public class EmailSender {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-        helper.setFrom("kautkautofficial@gmail.com", "DAT HR Team");
+        helper.setFrom("datmanagementnoti@gmail.com", "DAT Management Team");
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(content, true);

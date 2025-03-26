@@ -36,8 +36,8 @@ public class DepartmentAndTeamService {
     public String showdepartmentListPage(Model model) {
         List<DepartmentEntity> departmentEntities = departmentRepository.findAllByOrderByIdAsc();
         List<DepartmentDTO> department = departmentEntities.stream()
-            .map(entity -> modelMapper.map(entity, DepartmentDTO.class))
-            .collect(Collectors.toList());
+                .map(entity -> modelMapper.map(entity, DepartmentDTO.class))
+                .collect(Collectors.toList());
         model.addAttribute("department", department);
         return "department_list"; // This should match your Thymeleaf template name
     }
@@ -45,27 +45,27 @@ public class DepartmentAndTeamService {
     public String showteamListPage(Model model) {
         List<TeamEntity> teamEntities = teamRepository.findAllByOrderByIdAsc();
         List<TeamDTO> team = teamEntities.stream()
-            .map(entity -> modelMapper.map(entity, TeamDTO.class))
-            .collect(Collectors.toList());
+                .map(entity -> modelMapper.map(entity, TeamDTO.class))
+                .collect(Collectors.toList());
         List<DepartmentEntity> departmentEntities = departmentRepository.findAllByOrderByIdAsc();
         List<DepartmentDTO> department = departmentEntities.stream()
-            .map(entity -> modelMapper.map(entity, DepartmentDTO.class))
-            .collect(Collectors.toList());
+                .map(entity -> modelMapper.map(entity, DepartmentDTO.class))
+                .collect(Collectors.toList());
         model.addAttribute("departments", department);
         model.addAttribute("team", team);
         model.addAttribute("teamObject", new TeamEntity());
         return "team_list"; // This should match your Thymeleaf template name
     }
-    
+
     public DepartmentDTO getDepartmentById(Integer id) {
         // Fetch the department by ID
         DepartmentEntity departmentEntity = departmentRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Department not found"));
-    
+                .orElseThrow(() -> new IllegalArgumentException("Department not found"));
+
         // Map the entity to DTO (ensure modelMapper is properly configured)
         return modelMapper.map(departmentEntity, DepartmentDTO.class);
     }
-    
+
 
     public boolean isDuplicateDepartmentNameOnUpdate(DepartmentDTO departmentDTO) {
         // Check if a department with the same name exists but has a different ID
@@ -95,7 +95,7 @@ public class DepartmentAndTeamService {
     public Optional<TeamEntity> isTeamNameUpdate(TeamEntity teams) {
         return teamRepository.findByNameAndDepartmentId(teams.getName(), teams.getDepartment().getId());
     }
-    
+
 
     public TeamDTO getTeamById(Integer id) {
         TeamEntity teamEntity = teamRepository.findById(id)
@@ -105,8 +105,11 @@ public class DepartmentAndTeamService {
 
 
     public Optional<TeamEntity> isDuplicateTeamNameOnUpdate(TeamDTO teamDTO) {
-        return teamRepository.findByNameAndDepartmentId(teamDTO.getName(), teamDTO.getDepartment().getId());
+        return teamRepository.findByNameIgnoreCaseAndDepartmentIdAndIdNot(
+                teamDTO.getName(), teamDTO.getDepartment().getId(), teamDTO.getId()
+        );
     }
+
 
     public void updateTeam(TeamDTO teamDTO) {
         if (teamDTO.getId() == null) {

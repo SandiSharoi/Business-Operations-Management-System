@@ -30,11 +30,20 @@
         <h1 class="text-center mb-4 fw-bold text-3d" style="color: #4d76b8;">Form Details</h1>
 
         <form>
-            <!-- Task -->
+
+            <!-- Project ID -->
             <div class="mb-3 row">
-                <label class="col-sm-3 col-form-label fw-bold">Task</label>
+                <label class="col-sm-3 col-form-label fw-bold">Project ID</label>
                 <div class="col-sm-9">
-                    <input type="text" class="form-control" th:value="${formApplyDTO.task}" readonly>
+                    <input type="text" class="form-control" th:value="${formApplyDTO.projectId}" readonly>
+                </div>
+            </div>
+
+            <!-- Project Name -->
+            <div class="mb-3 row">
+                <label class="col-sm-3 col-form-label fw-bold">Project Name</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" th:value="${formApplyDTO.projectName}" readonly>
                 </div>
             </div>
 

@@ -1,6 +1,5 @@
 package com.DAT.capstone_project.dto;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -20,6 +19,10 @@ import jakarta.validation.constraints.Pattern;
 @AllArgsConstructor
 public class UsersDTO {
     private Long id;
+
+    @Pattern(regexp = "^(26|25)-\\d{5}$", message = "Invalid staff ID format. Use '26-xxxxx' or '25-xxxxx'.")
+    private String staffId;
+
     private String name;
     private String email;
 
@@ -31,23 +34,22 @@ public class UsersDTO {
 
     private PositionDTO position;
 
-    @JsonBackReference // Prevent recursive serialization of the team field in UsersDTO
     @ToString.Exclude
     private TeamDTO team;
 
-    private DepartmentDTO department;    
+    private DepartmentDTO department;
 
-    private List<Integer> departmentIds; // ✅ Add this to store multiple department IDs for DivH
+    private List<Integer> departmentIds; // Add this to store multiple department IDs for DivH
 
     private RoleDTO role;
 
-        // Custom constructor for id and name (for the query)
-        public UsersDTO(Long id, String name) {
-            this.id = id;
-            this.name = name;
-        }
+    // Custom constructor for id and name (for the query)
+    public UsersDTO(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 
-    // ✅ Add a constructor to initialize the departmentIds list
+    // Add a constructor to initialize the departmentIds list
     public UsersDTO() {
         this.departmentIds = new ArrayList<>();
     }

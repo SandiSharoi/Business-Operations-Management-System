@@ -22,7 +22,9 @@ public class FormApplyEntity {
     @Column(columnDefinition = "DATE")
     private LocalDate appliedDate;
 
-    private String task;
+    private String projectId;
+
+    private String projectName;
 
     @Column(columnDefinition = "DATE") // Explicitly specify that this column is of type DATE
     private LocalDate plannedDate;
@@ -45,7 +47,7 @@ public class FormApplyEntity {
     private String overtimeDate; // Changed to a single String stored in the same table
 
     private String workType; // New field for work type    
-    
+
     private String description;
 
     private Integer no_of_approvers;

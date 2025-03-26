@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -42,6 +43,9 @@ public class FormController {
 
     @Autowired
     private FormService formApplyService;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     // Display the form to apply for overtime
     @GetMapping("/form_apply")
@@ -71,6 +75,21 @@ public class FormController {
 
         if (loggedInUser == null) {
             return "redirect:/";
+        }
+
+        // Validate projectID format (PJ-0000)
+        String projectID = formApplyDTO.getProjectId(); // Assuming `projectID` is a field in FormApplyDTO
+        if (projectID == null || !projectID.matches("^PJ-\\d{4}$")) {
+            model.addAttribute("formatError", "Invalid Project ID format.");
+            retainFormState(loggedInUser, formApplyDTO, model);
+            return "form_apply";
+        }
+
+        // Check for duplicate Project ID
+        if (formApplyService.existsByProjectId(projectID)) {
+            model.addAttribute("duplicateError", "Project ID already exists.");
+            retainFormState(loggedInUser, formApplyDTO, model);
+            return "form_apply";
         }
 
         String userPosition = loggedInUser.getPosition().getName();
@@ -205,74 +224,66 @@ public class FormController {
     @PostMapping("/update_form_apply")
     public String updateFormApply(@ModelAttribute("formApplyDTO") FormApplyDTO formApplyDTO,
                                   @RequestParam(value = "documentFile", required = false) MultipartFile file,
-                                  RedirectAttributes redirectAttributes,
+                                  Model model,
                                   HttpSession session) {
-        try {
-            UsersEntity loggedInUser = (UsersEntity) session.getAttribute("loggedInUser");
-            if (loggedInUser == null) {
-                return "redirect:/";
-            }
+        UsersEntity loggedInUser = (UsersEntity) session.getAttribute("loggedInUser");
 
-            // Save the form first to generate formId
+        if (loggedInUser == null) {
+            return "redirect:/";
+        }
+
+        // Validate projectID format (PJ-0000)
+        String projectID = formApplyDTO.getProjectId();
+        if (projectID == null || !projectID.matches("^PJ-\\d{4}$")) {
+            model.addAttribute("formatError", "Invalid Project ID format.");
+            return "form_apply_edit";
+        }
+
+        // Check for duplicate projectID (excluding the current form being updated)
+        boolean projectExists = formApplyService.existsByProjectIdExcludingForm(projectID, formApplyDTO.getFormApplyId());
+        if (projectExists) {
+            model.addAttribute("duplicateError", "Project ID already exists. Please use a unique ID.");
+            return "form_apply_edit";
+        }
+
+        try {
             formApplyService.updateFormApply(formApplyDTO);
 
-            // Handle File Upload (If New File Is Provided)
+            // Handle File Upload
             if (file != null && !file.isEmpty()) {
-                try {
-                    String UPLOAD_DIR = "src/main/resources/uploads";
-                    LocalDate now = LocalDate.now();
-                    String year = String.valueOf(now.getYear());
-                    String month = String.format("%02d", now.getMonthValue());
-
-                    Path uploadPath = Paths.get(UPLOAD_DIR, year, month);
-                    Files.createDirectories(uploadPath); // Ensure directories exist
-
-                    String originalFileName = file.getOriginalFilename();
-                    String fileExtension = (originalFileName != null && originalFileName.contains("."))
-                            ? originalFileName.substring(originalFileName.lastIndexOf("."))
-                            : "";
-
-                    // Generate file name in the format <user_id>-<form_id>-attachment.fileextension
-                    Long formId = formApplyDTO.getFormApplyId(); // Assuming the formApplyId is set when editing
-                    String newFileName = "U" + loggedInUser.getId() + "-" + "F" + formId + "-attachment" + fileExtension;
-
-                    Path targetLocation = uploadPath.resolve(newFileName);
-
-                    // Delete Old File Before Uploading New One (if file already exists)
-                    if (formApplyDTO.getFileName() != null) {
-                        Path oldFile = uploadPath.resolve(formApplyDTO.getFileName());
-                        if (Files.exists(oldFile)) {
-                            Files.delete(oldFile);
-                        }
-                    }
-
-                    // Copy the new file to the target location, overwriting any existing file
-                    Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-
-                    // Update the form with the new file name
-                    formApplyDTO.setFileName(newFileName);
-
-                } catch (IOException e) {
-                    redirectAttributes.addFlashAttribute("error", "File upload failed: " + e.getMessage());
-                    return "redirect:/form_apply_edit/" + formApplyDTO.getFormApplyId();
-                }
+                handleFileUpload(file, loggedInUser.getId(), formApplyDTO.getFormApplyId());
             }
 
-            // Update the form record with the new file name
-            formApplyService.updateFormFileName(formApplyDTO.getFormApplyId(), formApplyDTO.getFileName());
-
-            // Add a success message to the redirect attributes
-            redirectAttributes.addFlashAttribute("success", "Form updated successfully!");
+            model.addAttribute("success", "Form updated successfully!");
         } catch (Exception e) {
-            // Handle unexpected errors during the form update process
-            redirectAttributes.addFlashAttribute("error", "Failed to update form: " + e.getMessage());
+            model.addAttribute("error", "Failed to update form: " + e.getMessage());
         }
-        return "redirect:/check_form_status";
+
+        return "formUpdate_success";
     }
 
+    private void handleFileUpload(MultipartFile file, Long userId, Long formId) throws IOException {
+        String UPLOAD_DIR = "src/main/resources/uploads";
+        LocalDate now = LocalDate.now();
+        String year = String.valueOf(now.getYear());
+        String month = String.format("%02d", now.getMonthValue());
 
+        Path uploadPath = Paths.get(UPLOAD_DIR, year, month);
+        Files.createDirectories(uploadPath); // Ensure directories exist
 
+        String originalFileName = file.getOriginalFilename();
+        String fileExtension = (originalFileName != null && originalFileName.contains("."))
+                ? originalFileName.substring(originalFileName.lastIndexOf("."))
+                : "";
 
+        // File Naming Format: <user_id>-<form_id>-attachment.fileextension
+        String newFileName = "U" + userId + "-F" + formId + "-attachment" + fileExtension;
+        Path targetLocation = uploadPath.resolve(newFileName);
+
+        Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+
+        formApplyService.updateFormFileName(formId, newFileName);
+    }
 
     @GetMapping("/downloadFile/{fileName:.+}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) {
